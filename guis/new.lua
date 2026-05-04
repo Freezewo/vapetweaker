@@ -732,8 +732,8 @@ components = {
 		preview.Parent = slider
 		local expandbutton = Instance.new('TextButton')
 		expandbutton.Name = 'Expand'
-		expandbutton.Size = UDim2.fromOffset(17, 13)
-		expandbutton.Position = UDim2.new(0, textService:GetTextSize(title.Text, title.TextSize, title.Font, Vector2.new(1000, 1000)).X + 11, 0, 7)
+		expandbutton.Size = UDim2.fromOffset(10, 13)
+		expandbutton.Position = UDim2.new(0, textService:GetTextSize(title.Text, title.TextSize, title.Font, Vector2.new(1000, 1000)).X + 4, 0, 7)
 		expandbutton.BackgroundTransparency = 1
 		expandbutton.Text = ''
 		expandbutton.Parent = slider
@@ -742,9 +742,9 @@ components = {
 		expand.Size = UDim2.fromScale(1, 1)
 		expand.Position = UDim2.new()
 		expand.BackgroundTransparency = 1
-		expand.Text = 'v'
+		expand.Text = '>'
 		expand.TextColor3 = color.Dark(uipallet.Text, 0.43)
-		expand.TextSize = 11
+		expand.TextSize = 10
 		expand.FontFace = uipallet.Font
 		expand.TextXAlignment = Enum.TextXAlignment.Center
 		expand.TextYAlignment = Enum.TextYAlignment.Center
@@ -944,7 +944,7 @@ components = {
 			})
 		end)
 		slider:GetPropertyChangedSignal('Visible'):Connect(function()
-			satSlider.Visible = expand.Rotation == 180 and slider.Visible
+			satSlider.Visible = satSlider.Visible and slider.Visible
 			vibSlider.Visible = satSlider.Visible
 			opSlider.Visible = satSlider.Visible
 		end)
@@ -958,7 +958,6 @@ components = {
 			satSlider.Visible = not satSlider.Visible
 			vibSlider.Visible = satSlider.Visible
 			opSlider.Visible = satSlider.Visible
-			expand.Rotation = satSlider.Visible and 180 or 0
 		end)
 		rainbow.MouseButton1Click:Connect(function()
 			optionapi:Toggle()
@@ -3333,8 +3332,8 @@ function mainapi:CreateGUI()
 		valuebox.Parent = slider
 		local expandbutton = Instance.new('TextButton')
 		expandbutton.Name = 'Expand'
-		expandbutton.Size = UDim2.fromOffset(17, 13)
-		expandbutton.Position = UDim2.new(0, getfontsize(title.Text, title.TextSize, title.Font).X + 11, 0, 7)
+		expandbutton.Size = UDim2.fromOffset(10, 13)
+		expandbutton.Position = UDim2.new(0, getfontsize(title.Text, title.TextSize, title.Font).X + 4, 0, 7)
 		expandbutton.BackgroundTransparency = 1
 		expandbutton.Text = ''
 		expandbutton.Parent = slider
@@ -3343,9 +3342,9 @@ function mainapi:CreateGUI()
 		expandicon.Size = UDim2.fromScale(1, 1)
 		expandicon.Position = UDim2.new()
 		expandicon.BackgroundTransparency = 1
-		expandicon.Text = 'v'
+		expandicon.Text = '>'
 		expandicon.TextColor3 = color.Dark(uipallet.Text, 0.43)
-		expandicon.TextSize = 11
+		expandicon.TextSize = 10
 		expandicon.FontFace = uipallet.Font
 		expandicon.TextXAlignment = Enum.TextXAlignment.Center
 		expandicon.TextYAlignment = Enum.TextYAlignment.Center
@@ -3535,7 +3534,6 @@ function mainapi:CreateGUI()
 			colorSlider.Visible = not colorSlider.Visible
 			satSlider.Visible = colorSlider.Visible
 			vibSlider.Visible = satSlider.Visible
-			expandicon.Rotation = satSlider.Visible and 180 or 0
 		end)
 		preview.MouseButton1Click:Connect(function()
 			preview.Visible = false
