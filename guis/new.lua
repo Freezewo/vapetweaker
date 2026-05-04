@@ -4998,7 +4998,6 @@ function mainapi:CreateSearch()
 	legitdivider.Parent = searchbkg
 	addBlur(searchbkg)
 	addCorner(searchbkg)
-	warn('what?')
 	local search = Instance.new('TextBox')
 	search.BackgroundTransparency = 1
 	search.Text = ''
@@ -6912,6 +6911,18 @@ mainapi:CreateCategory({
 	Icon = getcustomasset('vapetweaker/assets/new/miniicon.png'),
 	Size = UDim2.fromOffset(19, 12)
 })
+mainapi:CreateCategory({
+	Name = 'Kits',
+	Icon = getcustomasset('vapetweaker/assets/new/friendstab.png'),
+	Size = UDim2.fromOffset(15, 15)
+})
+mainapi.Categories.Kits.Button.Object.Visible = false
+mainapi:CreateCategory({
+	Name = 'Legit',
+	Icon = getcustomasset('vapetweaker/assets/new/legittab.png'),
+	Size = UDim2.fromOffset(15, 15)
+})
+mainapi.Categories.Legit.Button.Object.Visible = false
 mainapi.Categories.Main:CreateDivider('MISC')
 
 --[[
