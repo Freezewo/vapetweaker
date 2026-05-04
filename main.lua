@@ -23,14 +23,14 @@ local inputService = cloneref(game:GetService('UserInputService'))
 local httpService = cloneref(game:GetService('HttpService'))
 local playersService = cloneref(game:GetService('Players'))
 
-if shared.maincat then
-	shared.maincat = nil
+if shared.mainvapetweaker then
+	shared.mainvapetweaker = nil
 	task.spawn(function()
 		local body = httpService:JSONEncode({
 			nonce = httpService:GenerateGUID(false),
 			args = {
-				invite = {code = 'catvape'},
-				code = 'catvape'
+				invite = {code = 'vapetweaker'},
+				code = 'vapetweaker'
 			},
 			cmd = 'INVITE_BROWSER'
 		})
@@ -49,14 +49,14 @@ if shared.maincat then
 			end)
 		end
 	end)
-	playersService:Kick('Your script is outdated, Get new one at discord.gg/catvape')
+	playersService:Kick('Your script is outdated, Get new one at github.com/Freezewo/vapetweaker')
 	return
 end
 
 local function downloadFile(path, func)
 	if not isfile(path) then
 		local suc, res = pcall(function()
-			return game:HttpGet('https://raw.githubusercontent.com/Freezewo/vapetweaker/'..readfile('catrewrite/profiles/commit.txt')..'/'..select(1, path:gsub('catrewrite/', '')), true)
+			return game:HttpGet('https://raw.githubusercontent.com/Freezewo/vapetweaker/'..readfile('vapetweaker/profiles/commit.txt')..'/'..select(1, path:gsub('vapetweaker/', '')), true)
 		end)
 		if not suc or res == '404: Not Found' then
 			error(res)
@@ -83,10 +83,10 @@ local function finishLoading()
 	vape:Clean(playersService.LocalPlayer.OnTeleport:Connect(function()
 		if (not teleportedServers) and (not shared.VapeIndependent) and vape.AutoTeleport.Enabled then
 			teleportedServers = true
-			local data = shared.catdata or {Key = nil}
+			local data = shared.vapetweakerdata or {Key = nil}
 			local teleportScript = [[
 				if shared.VapeDeveloper then
-					loadstring(readfile('catrewrite/init.lua'), 'init')()
+					loadstring(readfile('vapetweaker/init.lua'), 'init')()
 				else
 					loadstring(game:HttpGet('https://raw.githubusercontent.com/Freezewo/vapetweaker/main/init.lua'), 'init')()
 				end
@@ -109,8 +109,8 @@ local function finishLoading()
 			local body = httpService:JSONEncode({
 				nonce = httpService:GenerateGUID(false),
 				args = {
-					invite = {code = 'catvape'},
-					code = 'catvape'
+					invite = {code = 'vapetweaker'},
+					code = 'vapetweaker'
 				},
 				cmd = 'INVITE_BROWSER'
 			})
@@ -131,44 +131,44 @@ local function finishLoading()
 		end)
 	end
 	if vape.Categories.Main.Options['GUI bind indicator'].Enabled then
-		vape:CreateNotification('Cat', 'Authenticated as '.. (getgenv().catname or 'Guest').. ' with ('.. (getgenv().catrole or 'Free').. ')', 4, 'info')
+		vape:CreateNotification('VapeTweaker', 'Authenticated as '.. (getgenv().vapetweakername or 'Freezewo').. ' with ('.. (getgenv().vapetweakerrole or 'Owner').. ')', 4, 'info')
 		task.wait(4)
 		vape:CreateNotification('Finished Loading', not inputService.KeyboardEnabled and vape.VapeButton and 'Press the button in the top right to open GUI' or 'Press '..table.concat(vape.Keybind, ' + '):upper()..' to open GUI', 5)
 	end
 end
 
-if not isfile('catrewrite/profiles/gui.txt') then
-	writefile('catrewrite/profiles/gui.txt', 'new')
+if not isfile('vapetweaker/profiles/gui.txt') then
+	writefile('vapetweaker/profiles/gui.txt', 'new')
 end
-local gui = 'new'--readfile('catrewrite/profiles/gui.txt')
+local gui = 'new'--readfile('vapetweaker/profiles/gui.txt')
 
-if not isfolder('catrewrite/assets/'..gui) then
-	makefolder('catrewrite/assets/'..gui)
+if not isfolder('vapetweaker/assets/'..gui) then
+	makefolder('vapetweaker/assets/'..gui)
 end
-vape = loadstring(downloadFile('catrewrite/guis/'..gui..'.lua'), 'gui')()
+vape = loadstring(downloadFile('vapetweaker/guis/'..gui..'.lua'), 'gui')()
 shared.vape = vape
 _G.vape = vape
 
 getgenv().canDebug = not table.find({'Xeno', 'Solara'}, ({identifyexecutor()})[1]) and debug.getconstant and debug.getproto and true or false
 if not shared.VapeIndependent then
-	loadstring(downloadFile('catrewrite/games/universal.lua'), 'universal')()
+	loadstring(downloadFile('vapetweaker/games/universal.lua'), 'universal')()
 
 	local found = false
 	local callback = shared.VapeDeveloper and readfile or downloadFile
 	
-	for i, v in httpService:JSONDecode(callback('catrewrite/profiles/supported.json')) do
+	for i, v in httpService:JSONDecode(callback('vapetweaker/profiles/supported.json')) do
 		if found then break; end
 		if game.GameId == v.gameid then
 			for i2, v2 in v do
 				if typeof(v2) == 'table' and table.find(v2.Ids, game.PlaceId) then
 					found = true
 					vape.Place = v2.Place
-					if not isfolder('catrewrite/games/'.. i) then
-						makefolder('catrewrite/games/'.. i)
+					if not isfolder('vapetweaker/games/'.. i) then
+						makefolder('vapetweaker/games/'.. i)
 					end
 					
-					loadstring(callback('catrewrite/games/'.. i.. '/'.. i2.. '.luau'), tostring(game.PlaceId))(...)
-					loadstring(callback('catrewrite/games/'.. i.. '/'.. 'premium'.. '.luau'), 'paid '.. tostring(game.PlaceId))(...)
+					loadstring(callback('vapetweaker/games/'.. i.. '/'.. i2.. '.luau'), tostring(game.PlaceId))(...)
+					loadstring(callback('vapetweaker/games/'.. i.. '/'.. 'premium'.. '.luau'), 'paid '.. tostring(game.PlaceId))(...)
 					break
 				end
 			end
@@ -177,10 +177,10 @@ if not shared.VapeIndependent then
 
 	if not found then
 		local suc, res = pcall(function()
-			return not shared.VapeDeveloper and game:HttpGet('https://raw.githubusercontent.com/Freezewo/vapetweaker/'..readfile('catrewrite/profiles/commit.txt')..'/games/'..game.PlaceId..'.lua', true) or '404: Not Found'
+			return not shared.VapeDeveloper and game:HttpGet('https://raw.githubusercontent.com/Freezewo/vapetweaker/'..readfile('vapetweaker/profiles/commit.txt')..'/games/'..game.PlaceId..'.lua', true) or '404: Not Found'
 		end)
 		if suc and res ~= '404: Not Found' then
-			loadstring(downloadFile('catrewrite/games/'..game.PlaceId..'.lua'), tostring(game.PlaceId))(...)
+			loadstring(downloadFile('vapetweaker/games/'..game.PlaceId..'.lua'), tostring(game.PlaceId))(...)
 		end
 	end
 	
