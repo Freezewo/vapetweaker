@@ -13333,17 +13333,15 @@ end)
 run(function()
 	local DamageBoost
 	local HorizontalMult
-	local VerticalMult
 	local SpeedBoostToggle
 	local SpeedBoostValue
 	local BoostDuration
 	local AutoJump
-	local BoostTimer
 	local OnlyInCombat
 
 	local boosting = false
 	local boostEnd = 0
-	local originalWalkSpeed = nil
+	local originalWalkSpeed = 16 -- default roblox walkspeed
 
 	DamageBoost = vape.Categories.Blatant:CreateModule({
 		Name = 'DamageBoost',
@@ -13363,46 +13361,33 @@ run(function()
 
 					local currentVel = root.AssemblyLinearVelocity
 					local hMult = HorizontalMult.Value / 100
-					local vMult = VerticalMult.Value / 100
 
 					local newVelX = currentVel.X * hMult
 					local newVelZ = currentVel.Z * hMult
-					local newVelY = currentVel.Y * vMult
+					local newVelY = currentVel.Y
 
-					if AutoJump.Enabled and currentVel.Y >= -1 then
-						newVelY = math.max(newVelY, 35 * (vMult > 0 and vMult or 1))
+					if AutoJump.Enabled and currentVel.Y > -5 and currentVel.Y < 10 then
+						newVelY = 40 -- standard anticheat safe jump multiplier
 					end
 
 					root.AssemblyLinearVelocity = Vector3.new(newVelX, newVelY, newVelZ)
 
 					if SpeedBoostToggle.Enabled then
 						boosting = true
-						boostEnd = tick() + BoostDuration.Value
-
-						if not originalWalkSpeed and entitylib.character.Humanoid then
-							originalWalkSpeed = entitylib.character.Humanoid.WalkSpeed
-						end
+						boostEnd = tick() + (BoostDuration.Value / 10)
 
 						task.spawn(function()
 							while boosting and tick() < boostEnd and DamageBoost.Enabled and entitylib.isAlive do
-								local root2 = entitylib.character.RootPart
-								if root2 then
-									local moveDir = entitylib.character.Humanoid.MoveDirection
-									if moveDir.Magnitude > 0 then
-										local boostVel = moveDir * SpeedBoostValue.Value
-										root2.AssemblyLinearVelocity = Vector3.new(
-											boostVel.X,
-											root2.AssemblyLinearVelocity.Y,
-											boostVel.Z
-										)
-									end
+								if entitylib.character.Humanoid then
+									-- Safe WalkSpeed override instead of Velocity override
+									entitylib.character.Humanoid.WalkSpeed = SpeedBoostValue.Value
 								end
 								task.wait()
 							end
 
 							boosting = false
-							if originalWalkSpeed and entitylib.isAlive and entitylib.character.Humanoid then
-								originalWalkSpeed = nil
+							if entitylib.isAlive and entitylib.character.Humanoid then
+								entitylib.character.Humanoid.WalkSpeed = originalWalkSpeed
 							end
 						end)
 					end
@@ -13410,8 +13395,8 @@ run(function()
 			else
 				boosting = false
 				boostEnd = 0
-				if originalWalkSpeed and entitylib.isAlive and entitylib.character.Humanoid then
-					originalWalkSpeed = nil
+				if entitylib.isAlive and entitylib.character.Humanoid then
+					entitylib.character.Humanoid.WalkSpeed = originalWalkSpeed
 				end
 			end
 		end,
@@ -13422,13 +13407,6 @@ run(function()
 		Name = 'Horizontal',
 		Min = 100,
 		Max = 500,
-		Default = 200,
-		Suffix = '%'
-	})
-	VerticalMult = DamageBoost:CreateSlider({
-		Name = 'Vertical',
-		Min = 100,
-		Max = 500,
 		Default = 150,
 		Suffix = '%'
 	})
@@ -13436,26 +13414,22 @@ run(function()
 		Name = 'Speed Boost',
 		Default = true,
 		Function = function(val)
-			if SpeedBoostValue then
-				SpeedBoostValue.Object.Visible = val
-			end
-			if BoostDuration then
-				BoostDuration.Object.Visible = val
-			end
+			if SpeedBoostValue then SpeedBoostValue.Object.Visible = val end
+			if BoostDuration then BoostDuration.Object.Visible = val end
 		end
 	})
 	SpeedBoostValue = DamageBoost:CreateSlider({
 		Name = 'Boost Speed',
-		Min = 20,
-		Max = 120,
-		Default = 50,
+		Min = 16,
+		Max = 40,
+		Default = 23,
 		Darker = true
 	})
 	BoostDuration = DamageBoost:CreateSlider({
 		Name = 'Duration',
 		Min = 1,
-		Max = 50,
-		Default = 10,
+		Max = 40,
+		Default = 15,
 		Suffix = function(val)
 			return string.format('%.1fs', val / 10)
 		end,
