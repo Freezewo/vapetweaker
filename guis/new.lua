@@ -3835,7 +3835,7 @@ function mainapi:CreateCategory(categorysettings)
 				text.TextTransparency = 0
 				table.insert(moduleapi.Tags, indicator)
 
-				indicator.Visible = tag ~= 'MATCHED'
+				indicator.Visible = false
 			end
 		end
 		
@@ -4968,7 +4968,7 @@ function mainapi:CreateSearch()
 	searchlegit.Position = UDim2.new(0.5, 4, 0, -1)
 	searchlegit.BackgroundTransparency = 1
 	searchlegit.FontFace = uipallet.Font
-	searchlegit.Text = 'Legit'
+	searchlegit.Text = ''
 	searchlegit.AnchorPoint = Vector2.new(0.5, 0)
 	searchlegit.TextSize = 14
 	searchlegit.Parent = searchbkg
@@ -4992,7 +4992,7 @@ function mainapi:CreateSearch()
 	local legitdivider = Instance.new('Frame')
 	legitdivider.Name = 'LegitDivider'
 	legitdivider.Size = UDim2.fromOffset(2, 12)
-	legitdivider.Position = UDim2.fromOffset(76, 13)
+	legitdivider.Position = UDim2.fromOffset(43, 13)
 	legitdivider.BackgroundColor3 = color.Light(uipallet.Main, 0.14)
 	legitdivider.BorderSizePixel = 0
 	legitdivider.Parent = searchbkg
@@ -6912,17 +6912,7 @@ mainapi:CreateCategory({
 	Icon = getcustomasset('vapetweaker/assets/new/miniicon.png'),
 	Size = UDim2.fromOffset(19, 12)
 })
-mainapi:CreateCategory({
-	Name = 'Kits',
-	Icon = getcustomasset('vapetweaker/assets/new/friendstab.png'),
-	Size = UDim2.fromOffset(15, 15)
-})
-mainapi:CreateCategory({
-	Name = 'Legit',
-	Icon = getcustomasset('vapetweaker/assets/new/legittab.png'),
-	Size = UDim2.fromOffset(15, 15)
-})
-mainapi.Categories.Main:CreateDivider('misc')
+mainapi.Categories.Main:CreateDivider('MISC')
 
 --[[
 	Friends
