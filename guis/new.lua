@@ -5013,6 +5013,10 @@ function mainapi:CreateSearch()
 		if legitcategory then
 			self.Legit.Window.Visible = false
 			clickgui.Visible = true
+			if legitcategory.Button.Enabled and legitcategory.Object.Visible then
+				legitcategory.Button:Toggle()
+				return
+			end
 			if not legitcategory.Button.Enabled then
 				legitcategory.Button:Toggle()
 			end

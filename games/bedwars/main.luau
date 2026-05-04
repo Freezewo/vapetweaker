@@ -2535,7 +2535,7 @@ run(function()
 						local progress = ((tick() - started) % duration) / duration
 						local remaining = duration - (progress * duration)
 						label.Text = string.format('%.1fs', remaining)
-						bar.Size = UDim2.fromScale(progress, 1)
+						bar.Size = UDim2.fromScale(1 - progress, 1)
 						bar.BackgroundColor3 = Color3.fromHSV(vape.GUIColor.Hue, vape.GUIColor.Sat, vape.GUIColor.Value)
 					end))
 				end
