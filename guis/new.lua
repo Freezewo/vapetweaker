@@ -737,17 +737,13 @@ components = {
 		expandbutton.BackgroundTransparency = 1
 		expandbutton.Text = ''
 		expandbutton.Parent = slider
-		local expand = Instance.new('TextLabel')
+		local expand = Instance.new('ImageLabel')
 		expand.Name = 'Expand'
-		expand.Size = UDim2.fromScale(1, 1)
-		expand.Position = UDim2.new()
+		expand.Size = UDim2.fromOffset(9, 5)
+		expand.Position = UDim2.fromOffset(0, 4)
 		expand.BackgroundTransparency = 1
-		expand.Text = '>'
-		expand.TextColor3 = color.Dark(uipallet.Text, 0.43)
-		expand.TextSize = 10
-		expand.FontFace = uipallet.Font
-		expand.TextXAlignment = Enum.TextXAlignment.Center
-		expand.TextYAlignment = Enum.TextYAlignment.Center
+		expand.Image = getcustomasset('vapetweaker/assets/new/expandicon.png')
+		expand.ImageColor3 = color.Dark(uipallet.Text, 0.43)
 		expand.Parent = expandbutton
 		local rainbow = Instance.new('TextButton')
 		rainbow.Name = 'Rainbow'
@@ -949,10 +945,10 @@ components = {
 			opSlider.Visible = satSlider.Visible
 		end)
 		expandbutton.MouseEnter:Connect(function()
-			expand.TextColor3 = color.Dark(uipallet.Text, 0.16)
+			expand.ImageColor3 = color.Dark(uipallet.Text, 0.16)
 		end)
 		expandbutton.MouseLeave:Connect(function()
-			expand.TextColor3 = color.Dark(uipallet.Text, 0.43)
+			expand.ImageColor3 = color.Dark(uipallet.Text, 0.43)
 		end)
 		expandbutton.MouseButton1Click:Connect(function()
 			satSlider.Visible = not satSlider.Visible
@@ -3337,17 +3333,13 @@ function mainapi:CreateGUI()
 		expandbutton.BackgroundTransparency = 1
 		expandbutton.Text = ''
 		expandbutton.Parent = slider
-		local expandicon = Instance.new('TextLabel')
+		local expandicon = Instance.new('ImageLabel')
 		expandicon.Name = 'Expand'
-		expandicon.Size = UDim2.fromScale(1, 1)
-		expandicon.Position = UDim2.new()
+		expandicon.Size = UDim2.fromOffset(9, 5)
+		expandicon.Position = UDim2.fromOffset(0, 4)
 		expandicon.BackgroundTransparency = 1
-		expandicon.Text = '>'
-		expandicon.TextColor3 = color.Dark(uipallet.Text, 0.43)
-		expandicon.TextSize = 10
-		expandicon.FontFace = uipallet.Font
-		expandicon.TextXAlignment = Enum.TextXAlignment.Center
-		expandicon.TextYAlignment = Enum.TextYAlignment.Center
+		expandicon.Image = getcustomasset('vapetweaker/assets/new/expandicon.png')
+		expandicon.ImageColor3 = color.Dark(uipallet.Text, 0.43)
 		expandicon.Parent = expandbutton
 		local rainbow = Instance.new('TextButton')
 		rainbow.Name = 'Rainbow'
@@ -3525,10 +3517,10 @@ function mainapi:CreateGUI()
 		end
 
 		expandbutton.MouseEnter:Connect(function()
-			expandicon.TextColor3 = color.Dark(uipallet.Text, 0.16)
+			expandicon.ImageColor3 = color.Dark(uipallet.Text, 0.16)
 		end)
 		expandbutton.MouseLeave:Connect(function()
-			expandicon.TextColor3 = color.Dark(uipallet.Text, 0.43)
+			expandicon.ImageColor3 = color.Dark(uipallet.Text, 0.43)
 		end)
 		expandbutton.MouseButton1Click:Connect(function()
 			colorSlider.Visible = not colorSlider.Visible

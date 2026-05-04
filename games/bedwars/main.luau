@@ -2491,9 +2491,10 @@ run(function()
 	local WallCheck
 	local PopBalloons
 	local TP
+	local ProgressBar
 	local rayCheck = RaycastParams.new()
 	rayCheck.RespectCanCollide = true
-	local up, down, old = 0, 0, nil
+	local up, down, old, progressgui = 0, 0, nil, nil
 
 	Fly = vape.Categories.Blatant:CreateModule({
 		Name = 'Fly',
@@ -2504,6 +2505,36 @@ run(function()
 				up, down, old = 0, 0, bedwars.BalloonController.deflateBalloon
 				bedwars.BalloonController.deflateBalloon = function() end
 				local tpTick, tpToggle, oldy = tick(), true, nil
+				if ProgressBar.Enabled then
+					local started = tick()
+					progressgui = Instance.new('ScreenGui')
+					progressgui.Name = 'FlyProgressBar'
+					progressgui.ResetOnSpawn = false
+					progressgui.Parent = lplr.PlayerGui
+					local label = Instance.new('TextLabel')
+					label.Size = UDim2.fromOffset(120, 18)
+					label.Position = UDim2.new(0.5, -60, 1, -190)
+					label.BackgroundTransparency = 1
+					label.TextColor3 = Color3.new(1, 1, 1)
+					label.TextStrokeTransparency = 0
+					label.TextSize = 16
+					label.Font = Enum.Font.ArialBold
+					label.Parent = progressgui
+					local holder = Instance.new('Frame')
+					holder.Size = UDim2.fromOffset(280, 20)
+					holder.Position = UDim2.new(0.5, -140, 1, -170)
+					holder.BackgroundTransparency = 1
+					holder.Parent = progressgui
+					local bar = Instance.new('Frame')
+					bar.Size = UDim2.fromScale(1, 1)
+					bar.BackgroundColor3 = Color3.fromHSV(vape.GUIColor.Hue, vape.GUIColor.Sat, vape.GUIColor.Value)
+					bar.BorderSizePixel = 0
+					bar.Parent = holder
+					Fly:Clean(runService.RenderStepped:Connect(function()
+						label.Text = string.format('%.1fs', tick() - started)
+						bar.BackgroundColor3 = Color3.fromHSV(vape.GUIColor.Hue, vape.GUIColor.Sat, vape.GUIColor.Value)
+					end))
+				end
 
 				if lplr.Character and (lplr.Character:GetAttribute('InflatedBalloons') or 0) == 0 and getItem('balloon') then
 					bedwars.BalloonController:inflateBalloon()
@@ -2588,6 +2619,10 @@ run(function()
 				end
 			else
 				bedwars.BalloonController.deflateBalloon = old
+				if progressgui then
+					progressgui:Destroy()
+					progressgui = nil
+				end
 				if PopBalloons.Enabled and entitylib.isAlive and (lplr.Character:GetAttribute('InflatedBalloons') or 0) > 0 then
 					for _ = 1, 3 do
 						bedwars.BalloonController:deflateBalloon()
@@ -2628,6 +2663,10 @@ run(function()
 	})
 	TP = Fly:CreateToggle({
 		Name = 'TP Down',
+		Default = true
+	})
+	ProgressBar = Fly:CreateToggle({
+		Name = 'Progress Bar',
 		Default = true
 	})
 end)
