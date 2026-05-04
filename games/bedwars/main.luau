@@ -2504,10 +2504,10 @@ run(function()
 			if callback then
 				up, down, old = 0, 0, bedwars.BalloonController.deflateBalloon
 				bedwars.BalloonController.deflateBalloon = function() end
-				local tpTick, tpToggle, oldy = tick(), true, nil
+				local tpTick, tpToggle, oldy, started = tick(), true, nil, nil
 				if ProgressBar.Enabled then
 					local duration = 2.5
-					local started = tick()
+					started = tick()
 					progressgui = Instance.new('ScreenGui')
 					progressgui.Name = 'FlyProgressBar'
 					progressgui.ResetOnSpawn = false
@@ -2575,6 +2575,9 @@ run(function()
 											tpToggle = false
 											oldy = root.Position.Y
 											tpTick = tick() + 0.06
+											if started then
+												started = tick()
+											end
 											root.CFrame = CFrame.lookAlong(Vector3.new(root.Position.X, ray.Position.Y + entitylib.character.HipHeight, root.Position.Z), root.CFrame.LookVector)
 										end
 									end
