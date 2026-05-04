@@ -3807,35 +3807,6 @@ function mainapi:CreateCategory(categorysettings)
 				if tag:find('PREM') then
 					table.insert(moduleapi.Alias, 'premium')
 				end
-
-				local size = getfontsize(removeTags(tag), 12, uipallet.Font, Vector2.new(100000, 100000))
-				local indicator = Instance.new('TextLabel')
-				indicator.LayoutOrder = i - 1
-				indicator.Parent = indicatorholder
-				indicator.Size = UDim2.new(0, size.X + 4, 0, 21)
-				indicator.BackgroundColor3 = Color3.new(1, 1, 1)
-				indicator.TextSize = 14
-				indicator.TextTransparency = 1
-				indicator.Text = tag
-				indicator.Name = tag
-				indicator.Position = UDim2.new()
-				indicator.TextColor3 = Color3.new(0, 0, 0)
-				indicator.FontFace = uipallet.Font
-
-				addCorner(indicator, UDim.new(0, 5))
-
-				local text = indicator:Clone()
-				text.Parent = indicator
-				text.Position = UDim2.new()
-				text.Size = UDim2.fromScale(1, 1)
-				text.BackgroundTransparency = 1
-				text.Name = 'Text'
-				text.AnchorPoint = Vector2.new()
-				text.TextSize = 12
-				text.TextTransparency = 0
-				table.insert(moduleapi.Tags, indicator)
-
-				indicator.Visible = false
 			end
 		end
 		
