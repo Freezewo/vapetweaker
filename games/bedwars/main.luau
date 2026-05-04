@@ -2506,6 +2506,7 @@ run(function()
 				bedwars.BalloonController.deflateBalloon = function() end
 				local tpTick, tpToggle, oldy = tick(), true, nil
 				if ProgressBar.Enabled then
+					local duration = 2.5
 					local started = tick()
 					progressgui = Instance.new('ScreenGui')
 					progressgui.Name = 'FlyProgressBar'
@@ -2517,8 +2518,8 @@ run(function()
 					label.BackgroundTransparency = 1
 					label.TextColor3 = Color3.new(1, 1, 1)
 					label.TextStrokeTransparency = 0
-					label.TextSize = 16
-					label.Font = Enum.Font.ArialBold
+					label.TextSize = 14
+					label.Font = Enum.Font.Arial
 					label.Parent = progressgui
 					local holder = Instance.new('Frame')
 					holder.Size = UDim2.fromOffset(280, 20)
@@ -2531,7 +2532,10 @@ run(function()
 					bar.BorderSizePixel = 0
 					bar.Parent = holder
 					Fly:Clean(runService.RenderStepped:Connect(function()
-						label.Text = string.format('%.1fs', tick() - started)
+						local progress = ((tick() - started) % duration) / duration
+						local remaining = duration - (progress * duration)
+						label.Text = string.format('%.1fs', remaining)
+						bar.Size = UDim2.fromScale(progress, 1)
 						bar.BackgroundColor3 = Color3.fromHSV(vape.GUIColor.Hue, vape.GUIColor.Sat, vape.GUIColor.Value)
 					end))
 				end
