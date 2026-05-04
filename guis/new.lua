@@ -5009,9 +5009,22 @@ function mainapi:CreateSearch()
 		divider.Visible = children.CanvasPosition.Y > 10 and children.Visible
 	end)
 	legiticon.MouseButton1Click:Connect(function()
-		clickgui.Visible = false
-		self.Legit.Window.Visible = true
-		self.Legit.Window.Position = UDim2.new(0.5, -350, 0.5, -194)
+		local legitcategory = self.Categories.Legit
+		if legitcategory then
+			self.Legit.Window.Visible = false
+			clickgui.Visible = true
+			if not legitcategory.Button.Enabled then
+				legitcategory.Button:Toggle()
+			end
+			legitcategory.Object.Position = UDim2.fromOffset(40, 46)
+			if not legitcategory.Expanded then
+				legitcategory:Expand()
+			end
+		else
+			clickgui.Visible = false
+			self.Legit.Window.Visible = true
+			self.Legit.Window.Position = UDim2.new(0.5, -350, 0.5, -194)
+		end
 	end)
 	local function hasAlias(alias, text)
 		for _, v in alias do
