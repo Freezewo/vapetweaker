@@ -732,23 +732,32 @@ components = {
 		preview.Parent = slider
 		local expandbutton = Instance.new('TextButton')
 		expandbutton.Name = 'Expand'
-		expandbutton.Size = UDim2.fromOffset(0, 13)
+		expandbutton.Size = UDim2.fromOffset(17, 13)
 		expandbutton.Position = UDim2.new(0, textService:GetTextSize(title.Text, title.TextSize, title.Font, Vector2.new(1000, 1000)).X + 11, 0, 7)
 		expandbutton.BackgroundTransparency = 1
 		expandbutton.Text = ''
 		expandbutton.Parent = slider
-		local expand = Instance.new('TextLabel')
+		local expand = Instance.new('Frame')
 		expand.Name = 'Expand'
-		expand.Size = UDim2.fromScale(1, 1)
-		expand.Position = UDim2.new()
+		expand.Size = UDim2.fromOffset(7, 7)
+		expand.Position = UDim2.fromOffset(5, 2)
 		expand.BackgroundTransparency = 1
-		expand.Text = ''
-		expand.TextColor3 = color.Dark(uipallet.Text, 0.43)
-		expand.TextSize = 14
-		expand.FontFace = uipallet.Font
-		expand.TextXAlignment = Enum.TextXAlignment.Center
-		expand.TextYAlignment = Enum.TextYAlignment.Center
 		expand.Parent = expandbutton
+		local expandcorner = Instance.new('UICorner')
+		expandcorner.CornerRadius = UDim.new(0, 1)
+		expandcorner.Parent = expand
+		local expandstroke = Instance.new('UIStroke')
+		expandstroke.Color = color.Dark(uipallet.Text, 0.43)
+		expandstroke.Thickness = 1
+		expandstroke.Parent = expand
+		local expandhide = Instance.new('Frame')
+		expandhide.Size = UDim2.fromScale(1, 1)
+		expandhide.Position = UDim2.fromOffset(-4, -4)
+		expandhide.BackgroundColor3 = slider.BackgroundColor3
+		expandhide.BorderSizePixel = 0
+		expandhide.Rotation = -45
+		expandhide.Parent = expand
+		expand.Rotation = 45
 		local rainbow = Instance.new('TextButton')
 		rainbow.Name = 'Rainbow'
 		rainbow.Size = UDim2.fromOffset(12, 12)
@@ -949,10 +958,10 @@ components = {
 			opSlider.Visible = satSlider.Visible
 		end)
 		expandbutton.MouseEnter:Connect(function()
-			expand.TextColor3 = color.Dark(uipallet.Text, 0.16)
+			expandstroke.Color = color.Dark(uipallet.Text, 0.16)
 		end)
 		expandbutton.MouseLeave:Connect(function()
-			expand.TextColor3 = color.Dark(uipallet.Text, 0.43)
+			expandstroke.Color = color.Dark(uipallet.Text, 0.43)
 		end)
 		expandbutton.MouseButton1Click:Connect(function()
 			satSlider.Visible = not satSlider.Visible
@@ -3333,23 +3342,32 @@ function mainapi:CreateGUI()
 		valuebox.Parent = slider
 		local expandbutton = Instance.new('TextButton')
 		expandbutton.Name = 'Expand'
-		expandbutton.Size = UDim2.fromOffset(0, 13)
+		expandbutton.Size = UDim2.fromOffset(17, 13)
 		expandbutton.Position = UDim2.new(0, getfontsize(title.Text, title.TextSize, title.Font).X + 11, 0, 7)
 		expandbutton.BackgroundTransparency = 1
 		expandbutton.Text = ''
 		expandbutton.Parent = slider
-		local expandicon = Instance.new('TextLabel')
+		local expandicon = Instance.new('Frame')
 		expandicon.Name = 'Expand'
-		expandicon.Size = UDim2.fromScale(1, 1)
-		expandicon.Position = UDim2.new()
+		expandicon.Size = UDim2.fromOffset(7, 7)
+		expandicon.Position = UDim2.fromOffset(5, 2)
 		expandicon.BackgroundTransparency = 1
-		expandicon.Text = ''
-		expandicon.TextColor3 = color.Dark(uipallet.Text, 0.43)
-		expandicon.TextSize = 14
-		expandicon.FontFace = uipallet.Font
-		expandicon.TextXAlignment = Enum.TextXAlignment.Center
-		expandicon.TextYAlignment = Enum.TextYAlignment.Center
 		expandicon.Parent = expandbutton
+		local expandcorner = Instance.new('UICorner')
+		expandcorner.CornerRadius = UDim.new(0, 1)
+		expandcorner.Parent = expandicon
+		local expandstroke = Instance.new('UIStroke')
+		expandstroke.Color = color.Dark(uipallet.Text, 0.43)
+		expandstroke.Thickness = 1
+		expandstroke.Parent = expandicon
+		local expandhide = Instance.new('Frame')
+		expandhide.Size = UDim2.fromScale(1, 1)
+		expandhide.Position = UDim2.fromOffset(-4, -4)
+		expandhide.BackgroundColor3 = slider.BackgroundColor3
+		expandhide.BorderSizePixel = 0
+		expandhide.Rotation = -45
+		expandhide.Parent = expandicon
+		expandicon.Rotation = 45
 		local rainbow = Instance.new('TextButton')
 		rainbow.Name = 'Rainbow'
 		rainbow.Size = UDim2.fromOffset(12, 12)
@@ -3526,10 +3544,10 @@ function mainapi:CreateGUI()
 		end
 
 		expandbutton.MouseEnter:Connect(function()
-			expandicon.TextColor3 = color.Dark(uipallet.Text, 0.16)
+			expandstroke.Color = color.Dark(uipallet.Text, 0.16)
 		end)
 		expandbutton.MouseLeave:Connect(function()
-			expandicon.TextColor3 = color.Dark(uipallet.Text, 0.43)
+			expandstroke.Color = color.Dark(uipallet.Text, 0.43)
 		end)
 		expandbutton.MouseButton1Click:Connect(function()
 			colorSlider.Visible = not colorSlider.Visible
