@@ -1,0 +1,16 @@
+# Local executor/cache folders
+catrewrite/
+vapetweaker/
+
+# Local profile/runtime files
+profiles/commit.txt
+profiles/gui.txt
+
+# OS/editor files
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Logs
+*.log
