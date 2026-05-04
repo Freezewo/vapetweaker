@@ -13332,14 +13332,14 @@ end)
 
 run(function()
 	local DamageBoost
+	local SpeedBoostToggle
+	local SpeedBoostValue
+	local BoostDuration
+	local AutoJump
+	local OnlyInCombat
+
 	local boosting = false
 	local boostEnd = 0
-	local originalWalkSpeed = 16
-
-	-- Hardcoded optimized safe values
-	local OPTIMAL_HMULT = 1.6
-	local OPTIMAL_SPEED = 22.5
-	local OPTIMAL_DURATION = 1.5
 
 	DamageBoost = vape.Categories.Blatant:CreateModule({
 		Name = 'DamageBoost',
@@ -13355,44 +13355,81 @@ run(function()
 					local root = entitylib.character.RootPart
 					if not root then return end
 
-					-- Only triggers in actual combat to prevent lobby glitches
-					if store.matchState == 0 then return end
+					if OnlyInCombat.Enabled and store.matchState == 0 then return end
 
-					local currentVel = root.AssemblyLinearVelocity
+					if AutoJump.Enabled and root.AssemblyLinearVelocity.Y < 5 then
+						root.AssemblyLinearVelocity = Vector3.new(
+							root.AssemblyLinearVelocity.X,
+							35,
+							root.AssemblyLinearVelocity.Z
+						)
+					end
 
-					-- Boost horizontal knockback safely
-					local newVelX = currentVel.X * OPTIMAL_HMULT
-					local newVelZ = currentVel.Z * OPTIMAL_HMULT
-					local newVelY = currentVel.Y
+					if SpeedBoostToggle.Enabled then
+						boosting = true
+						boostEnd = tick() + (BoostDuration.Value / 10)
 
-					root.AssemblyLinearVelocity = Vector3.new(newVelX, newVelY, newVelZ)
-
-					-- Safe sustained speed boost using WalkSpeed overlay
-					boosting = true
-					boostEnd = tick() + OPTIMAL_DURATION
-
-					task.spawn(function()
-						while boosting and tick() < boostEnd and DamageBoost.Enabled and entitylib.isAlive do
-							if entitylib.character.Humanoid then
-								entitylib.character.Humanoid.WalkSpeed = OPTIMAL_SPEED
+						task.spawn(function()
+							while boosting and tick() < boostEnd and DamageBoost.Enabled and entitylib.isAlive do
+								local root2 = entitylib.character.RootPart
+								if root2 then
+									local moveDir = entitylib.character.Humanoid.MoveDirection
+									if moveDir.Magnitude > 0 then
+										local boostVel = moveDir * SpeedBoostValue.Value
+										root2.AssemblyLinearVelocity = Vector3.new(
+											boostVel.X,
+											root2.AssemblyLinearVelocity.Y,
+											boostVel.Z
+										)
+									end
+								end
+								task.wait()
 							end
-							task.wait()
-						end
-
-						boosting = false
-						if entitylib.isAlive and entitylib.character.Humanoid then
-							entitylib.character.Humanoid.WalkSpeed = originalWalkSpeed
-						end
-					end)
+							boosting = false
+						end)
+					end
 				end))
 			else
 				boosting = false
 				boostEnd = 0
-				if entitylib.isAlive and entitylib.character.Humanoid then
-					entitylib.character.Humanoid.WalkSpeed = originalWalkSpeed
-				end
 			end
 		end,
-		Tooltip = 'Automatically boosts speed safely\nwhen taking damage (No config needed)'
+		Tooltip = 'Massively boosts your movement speed\nwhen you take damage.'
+	})
+
+	SpeedBoostToggle = DamageBoost:CreateToggle({
+		Name = 'Speed Boost',
+		Default = true,
+		Function = function(val)
+			if SpeedBoostValue then SpeedBoostValue.Object.Visible = val end
+			if BoostDuration then BoostDuration.Object.Visible = val end
+		end
+	})
+	SpeedBoostValue = DamageBoost:CreateSlider({
+		Name = 'Boost Speed',
+		Min = 16,
+		Max = 100,
+		Default = 35,
+		Darker = true
+	})
+	BoostDuration = DamageBoost:CreateSlider({
+		Name = 'Duration',
+		Min = 1,
+		Max = 50,
+		Default = 15,
+		Suffix = function(val)
+			return string.format('%.1fs', val / 10)
+		end,
+		Darker = true
+	})
+	AutoJump = DamageBoost:CreateToggle({
+		Name = 'Auto Jump',
+		Default = false,
+		Tooltip = 'Automatically jumps when hit\nfor extra momentum'
+	})
+	OnlyInCombat = DamageBoost:CreateToggle({
+		Name = 'Only in match',
+		Default = true,
+		Tooltip = 'Only activates during\nan active match'
 	})
 end)
