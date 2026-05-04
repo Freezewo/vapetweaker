@@ -737,13 +737,17 @@ components = {
 		expandbutton.BackgroundTransparency = 1
 		expandbutton.Text = ''
 		expandbutton.Parent = slider
-		local expand = Instance.new('ImageLabel')
+		local expand = Instance.new('TextLabel')
 		expand.Name = 'Expand'
-		expand.Size = UDim2.fromOffset(8, 5)
-		expand.Position = UDim2.fromOffset(5, 4)
+		expand.Size = UDim2.fromScale(1, 1)
+		expand.Position = UDim2.new()
 		expand.BackgroundTransparency = 1
-		expand.Image = getcustomasset('vapetweaker/assets/new/expandicon.png')
-		expand.ImageColor3 = color.Dark(uipallet.Text, 0.43)
+		expand.Text = '⌄'
+		expand.TextColor3 = color.Dark(uipallet.Text, 0.43)
+		expand.TextSize = 14
+		expand.FontFace = uipallet.Font
+		expand.TextXAlignment = Enum.TextXAlignment.Center
+		expand.TextYAlignment = Enum.TextYAlignment.Center
 		expand.Parent = expandbutton
 		local rainbow = Instance.new('TextButton')
 		rainbow.Name = 'Rainbow'
@@ -945,10 +949,10 @@ components = {
 			opSlider.Visible = satSlider.Visible
 		end)
 		expandbutton.MouseEnter:Connect(function()
-			expand.ImageColor3 = color.Dark(uipallet.Text, 0.16)
+			expand.TextColor3 = color.Dark(uipallet.Text, 0.16)
 		end)
 		expandbutton.MouseLeave:Connect(function()
-			expand.ImageColor3 = color.Dark(uipallet.Text, 0.43)
+			expand.TextColor3 = color.Dark(uipallet.Text, 0.43)
 		end)
 		expandbutton.MouseButton1Click:Connect(function()
 			satSlider.Visible = not satSlider.Visible
@@ -3334,13 +3338,17 @@ function mainapi:CreateGUI()
 		expandbutton.BackgroundTransparency = 1
 		expandbutton.Text = ''
 		expandbutton.Parent = slider
-		local expandicon = Instance.new('ImageLabel')
+		local expandicon = Instance.new('TextLabel')
 		expandicon.Name = 'Expand'
-		expandicon.Size = UDim2.fromOffset(9, 5)
-		expandicon.Position = UDim2.fromOffset(4, 4)
+		expandicon.Size = UDim2.fromScale(1, 1)
+		expandicon.Position = UDim2.new()
 		expandicon.BackgroundTransparency = 1
-		expandicon.Image = getcustomasset('vapetweaker/assets/new/expandicon.png')
-		expandicon.ImageColor3 = color.Dark(uipallet.Text, 0.43)
+		expandicon.Text = '⌄'
+		expandicon.TextColor3 = color.Dark(uipallet.Text, 0.43)
+		expandicon.TextSize = 14
+		expandicon.FontFace = uipallet.Font
+		expandicon.TextXAlignment = Enum.TextXAlignment.Center
+		expandicon.TextYAlignment = Enum.TextYAlignment.Center
 		expandicon.Parent = expandbutton
 		local rainbow = Instance.new('TextButton')
 		rainbow.Name = 'Rainbow'
@@ -3518,10 +3526,10 @@ function mainapi:CreateGUI()
 		end
 
 		expandbutton.MouseEnter:Connect(function()
-			expandicon.ImageColor3 = color.Dark(uipallet.Text, 0.16)
+			expandicon.TextColor3 = color.Dark(uipallet.Text, 0.16)
 		end)
 		expandbutton.MouseLeave:Connect(function()
-			expandicon.ImageColor3 = color.Dark(uipallet.Text, 0.43)
+			expandicon.TextColor3 = color.Dark(uipallet.Text, 0.43)
 		end)
 		expandbutton.MouseButton1Click:Connect(function()
 			colorSlider.Visible = not colorSlider.Visible
