@@ -13407,15 +13407,6 @@ run(function()
 	local JadeHammerExploit
 	local lastJadeTick = 0
 
-	local function hasItem(itemName)
-		local inv = store.inventories[lplr]
-		if not inv then return false end
-		for _, v in inv.items do
-			if v.itemType == itemName then return true end
-		end
-		return false
-	end
-
 	JadeHammerExploit = vape.Categories.Blatant:CreateModule({
 		Name = 'JadeHammerExploit',
 		Function = function(callback)
@@ -13428,10 +13419,17 @@ run(function()
 						if not entitylib.isAlive then continue end
 						if store.matchState == 0 then continue end
 
-						if hasItem('jade_hammer') and (tick() - lastJadeTick) > 6 then
+						local hammerItem = getItem('jade_hammer')
+						if hammerItem and (tick() - lastJadeTick) > 6 then
 							lastJadeTick = tick()
-							pcall(function()
-								bedwars.AbilityController:useAbility('jade_hammer_jump')
+							task.spawn(function()
+								switchItem(hammerItem.tool, 0)
+								task.wait(0.1)
+								pcall(function()
+									if bedwars.AbilityController:canUseAbility('jade_hammer_jump') then
+										bedwars.AbilityController:useAbility('jade_hammer_jump')
+									end
+								end)
 							end)
 						end
 					end
@@ -13468,6 +13466,7 @@ end)
 -- AntiLagback (ported from AlSploit - Clone bypass method)
 run(function()
 	local AntiLagback
+	local ControlModule
 	local OldMoveFunction
 	local Clone
 
@@ -13507,7 +13506,8 @@ run(function()
 		Function = function(callback)
 			if callback then
 				pcall(function()
-					OldMoveFunction = bedwars.Knit.Controllers.ControlModule and bedwars.Knit.Controllers.ControlModule.moveFunction
+					ControlModule = require(lplr.PlayerScripts:WaitForChild("PlayerModule", 2)).controls
+					OldMoveFunction = ControlModule and ControlModule.moveFunction
 				end)
 
 				AntiLagback:Clean(lplr:GetAttributeChangedSignal('LastTeleported'):Connect(function()
@@ -13518,8 +13518,8 @@ run(function()
 					Clone = createClone()
 					if not Clone then return end
 
-					if OldMoveFunction and bedwars.Knit.Controllers.ControlModule then
-						bedwars.Knit.Controllers.ControlModule.moveFunction = function(Self, Vec, ...)
+					if OldMoveFunction and ControlModule then
+						ControlModule.moveFunction = function(Self, Vec, ...)
 							local lookVec = Vector3.new(gameCamera.CFrame.LookVector.X, 0, gameCamera.CFrame.LookVector.Z).Unit
 							if Clone and Clone.PrimaryPart then
 								local params = RaycastParams.new()
@@ -13528,7 +13528,7 @@ run(function()
 								local ray1 = workspace:Raycast(Clone.PrimaryPart.Position + lookVec, Vector3.new(0, -1000, 0), params)
 								local ray2 = workspace:Raycast((Clone.PrimaryPart.Position - Vector3.new(0, 15, 0)) + (lookVec * 5), Vector3.new(0, -1000, 0), params)
 								if ray1 or ray2 then
-									Clone.PrimaryPart.CFrame = CFrame.new(Clone.PrimaryPart.Position + (lookVec / 16))
+									Clone.PrimaryPart.CFrame = CFrame.new(Clone.PrimaryPart.Position + (lookVec * 1.25))
 									Vec = lookVec
 								end
 							end
@@ -13542,8 +13542,8 @@ run(function()
 						if entitylib.isAlive then
 							gameCamera.CameraSubject = lplr.Character.Humanoid
 						end
-						if OldMoveFunction and bedwars.Knit.Controllers.ControlModule then
-							bedwars.Knit.Controllers.ControlModule.moveFunction = OldMoveFunction
+						if OldMoveFunction and ControlModule then
+							ControlModule.moveFunction = OldMoveFunction
 						end
 						Clone:Destroy()
 						Clone = nil
@@ -13554,8 +13554,8 @@ run(function()
 					Clone:Destroy()
 					Clone = nil
 				end
-				if OldMoveFunction and bedwars.Knit.Controllers.ControlModule then
-					bedwars.Knit.Controllers.ControlModule.moveFunction = OldMoveFunction
+				if OldMoveFunction and ControlModule then
+					ControlModule.moveFunction = OldMoveFunction
 				end
 			end
 		end,
