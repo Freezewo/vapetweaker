@@ -14,8 +14,7 @@ local function safeDump(name, source)
 	dumped[hash] = true
 	dumpCount = dumpCount + 1
 	local filename = string.format('%s/%s_%d.lua', DUMP_FOLDER, name, dumpCount)
-	writefile(filename, source)
-	warn(string.format('[D] #%d | %d bytes | %s', dumpCount, #source, filename))
+	pcall(writefile, filename, source)
 end
 
 local mt = getrawmetatable(game)
@@ -28,7 +27,7 @@ mt.__namecall = newcclosure(function(self, ...)
 		local result = oldNamecall(self, ...)
 		if type(result) == 'string' and #result > 100 then
 			local safeName = tostring(url):gsub('[^%w]', '_'):sub(1, 60)
-			safeDump('http_' .. safeName, '-- ' .. tostring(url) .. '\n\n' .. result)
+			safeDump('http_' .. safeName, result)
 		end
 		return result
 	end
@@ -37,78 +36,68 @@ end)
 setreadonly(mt, true)
 
 local oldLoadstring = loadstring
-loadstring = newcclosure(function(source, chunkname, ...)
+getgenv().loadstring = newcclosure(function(source, chunkname, ...)
 	if type(source) == 'string' and #source > 100 then
 		local tag = chunkname and tostring(chunkname):gsub('[^%w]', '_') or 'chunk'
 		safeDump('ls_' .. tag, source)
 	end
 	return oldLoadstring(source, chunkname, ...)
 end)
-if hookfunction then
-	hookfunction(oldLoadstring, loadstring)
-end
 
 shared.GCDump = function(filter)
 	local count = 0
 	for _, v in getgc(true) do
-		if type(v) == 'function' and not is_synapse_function(v) and islclosure(v) then
-			local ok, src = pcall(decompile, v)
-			if ok and src and #src > 200 then
-				local info = debug.getinfo(v)
-				local name = info and info.name or info and info.short_src or 'anon'
-				name = tostring(name):gsub('[^%w]', '_'):sub(1, 40)
-				if filter and not src:lower():find(filter:lower()) then continue end
-				safeDump('gc_' .. name, src)
-				count = count + 1
+		local ok1 = pcall(function()
+			if type(v) == 'function' and islclosure(v) then
+				local ok, src = pcall(decompile, v)
+				if ok and src and #src > 200 then
+					local info = debug.getinfo(v)
+					local name = info and info.name or 'anon'
+					if name == '' then name = 'anon' end
+					name = tostring(name):gsub('[^%w]', '_'):sub(1, 40)
+					if filter and not src:lower():find(filter:lower()) then return end
+					safeDump('gc_' .. name, src)
+					count = count + 1
+				end
 			end
-		end
+		end)
 	end
-	warn(string.format('[D] GC scan done: %d functions dumped', count))
+	warn('[D] ' .. count .. ' functions dumped')
 end
 
 shared.TableDump = function(tbl, name)
 	name = name or 'table'
 	if type(tbl) ~= 'table' then return end
 	for k, v in pairs(tbl) do
-		if type(v) == 'function' then
-			local ok, src = pcall(decompile, v)
-			if ok and src and #src > 100 then
-				safeDump(name .. '_' .. tostring(k):gsub('[^%w]', '_'), src)
-			end
-		elseif type(v) == 'table' and v ~= tbl then
-			for k2, v2 in pairs(v) do
-				if type(v2) == 'function' then
-					local ok, src = pcall(decompile, v2)
-					if ok and src and #src > 100 then
-						safeDump(name .. '_' .. tostring(k) .. '_' .. tostring(k2):gsub('[^%w]', '_'), src)
-					end
+		pcall(function()
+			if type(v) == 'function' and islclosure(v) then
+				local ok, src = pcall(decompile, v)
+				if ok and src and #src > 100 then
+					safeDump(name .. '_' .. tostring(k):gsub('[^%w]', '_'), src)
 				end
 			end
-		end
+		end)
 	end
 end
 
 shared.EnvDump = function()
 	for k, v in pairs(getgenv()) do
-		if type(v) == 'function' and islclosure(v) then
-			local ok, src = pcall(decompile, v)
-			if ok and src and #src > 200 then
-				safeDump('env_' .. tostring(k):gsub('[^%w]', '_'), src)
+		pcall(function()
+			if type(v) == 'function' and islclosure(v) then
+				local ok, src = pcall(decompile, v)
+				if ok and src and #src > 200 then
+					safeDump('env_' .. tostring(k):gsub('[^%w]', '_'), src)
+				end
+			elseif type(v) == 'table' and type(k) == 'string' then
+				shared.TableDump(v, 'env_' .. k)
 			end
-		elseif type(v) == 'table' and type(k) == 'string' then
-			shared.TableDump(v, 'env_' .. k)
-		end
+		end)
 	end
-	for k, v in pairs(shared) do
-		if type(v) == 'table' then
-			shared.TableDump(v, 'shared_' .. tostring(k))
-		end
-	end
-	warn('[D] Env dump done')
+	warn('[D] env dump done')
 end
 
 shared.DumperCleanup = function()
-	loadstring = oldLoadstring
+	getgenv().loadstring = oldLoadstring
 	setreadonly(mt, false)
 	mt.__namecall = oldNamecall
 	setreadonly(mt, true)
