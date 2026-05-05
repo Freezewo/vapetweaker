@@ -13394,7 +13394,7 @@ run(function()
 					oldHealth = hum.Health
 					DamageBoost:Clean(hum.HealthChanged:Connect(function(newHealth)
 						if newHealth < oldHealth then
-							lastDamageTick = tick() + 0.4
+							lastDamageTick = tick() + (BoostDuration.Value / 10)
 							if DamageAnim.Enabled then
 								doDamageAnimation()
 							end
@@ -13429,13 +13429,13 @@ run(function()
 		Name = 'Speed',
 		Min = 1,
 		Max = 100,
-		Default = 23
+		Default = 50
 	})
 	BoostDuration = DamageBoost:CreateSlider({
 		Name = 'Duration',
 		Min = 1,
 		Max = 20,
-		Default = 4,
+		Default = 8,
 		Suffix = function(val)
 			return string.format('%.1fs', val / 10)
 		end
