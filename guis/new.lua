@@ -4978,8 +4978,9 @@ function mainapi:CreateSearch()
 	search.ClearTextOnFocus = false
 	search.Parent = searchbkg
 	task.delay(1, function()
-		search.Size = UDim2.new(1, -100, 0, 37)
-		search.Position = UDim2.fromOffset(85, 0)
+		local legitVisible = searchbkg:FindFirstChild('Legit') and searchbkg.Legit.Visible
+		search.Size = UDim2.new(1, legitVisible and -50 or -10, 0, 37)
+		search.Position = UDim2.fromOffset(legitVisible and 50 or 10, 0)
 	end)
 	local children = Instance.new('ScrollingFrame')
 	children.Name = 'Children'
@@ -5044,8 +5045,9 @@ function mainapi:CreateSearch()
 				v:Destroy()
 			end
 		end
-		search.Size = UDim2.new(1, -100, 0, 37)
-		search.Position = UDim2.fromOffset(85, 0)
+		local legitVisible = searchbkg:FindFirstChild('Legit') and searchbkg.Legit.Visible
+		search.Size = UDim2.new(1, legitVisible and -50 or -10, 0, 37)
+		search.Position = UDim2.fromOffset(legitVisible and 50 or 10, 0)
 		if search.Text == '' then return end
 
 		for i, v in self.Modules do
