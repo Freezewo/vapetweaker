@@ -13403,6 +13403,6 @@ run(function()
 		Name = 'Speed',
 		Min = 1,
 		Max = 100,
-		Default = 23
+		Default = 43
 	})
 end)
