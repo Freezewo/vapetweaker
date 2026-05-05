@@ -12176,9 +12176,13 @@ run(function()
 		Function = function(callback)
 			if callback then
 				oldvalues = table.clone(tab)
-				oldfont = debug.getconstant(bedwars.DamageIndicator, 86)
-				debug.setconstant(bedwars.DamageIndicator, 86, Enum.Font[FontOption.Value])
-				debug.setconstant(bedwars.DamageIndicator, 119, Stroke.Enabled and 'Thickness' or 'Enabled')
+				pcall(function()
+					oldfont = debug.getconstant(bedwars.DamageIndicator, 86)
+					debug.setconstant(bedwars.DamageIndicator, 86, Enum.Font[FontOption.Value])
+				end)
+				pcall(function()
+					debug.setconstant(bedwars.DamageIndicator, 119, Stroke.Enabled and 'Thickness' or 'Enabled')
+				end)
 				tab.strokeThickness = Stroke.Enabled and 1 or false
 				tab.textSize = Size.Value
 				tab.blowUpSize = Size.Value
@@ -12190,8 +12194,10 @@ run(function()
 				for i, v in oldvalues do
 					tab[i] = v
 				end
-				debug.setconstant(bedwars.DamageIndicator, 86, oldfont)
-				debug.setconstant(bedwars.DamageIndicator, 119, 'Thickness')
+				pcall(function()
+					debug.setconstant(bedwars.DamageIndicator, 86, oldfont)
+					debug.setconstant(bedwars.DamageIndicator, 119, 'Thickness')
+				end)
 			end
 		end,
 		Tooltip = 'Customize the damage indicator'
@@ -12207,7 +12213,9 @@ run(function()
 		List = fontitems,
 		Function = function(val)
 			if DamageIndicator.Enabled then
-				debug.setconstant(bedwars.DamageIndicator, 86, Enum.Font[val])
+				pcall(function()
+					debug.setconstant(bedwars.DamageIndicator, 86, Enum.Font[val])
+				end)
 			end
 		end
 	})
@@ -12247,7 +12255,9 @@ run(function()
 		Name = 'Stroke',
 		Function = function(callback)
 			if DamageIndicator.Enabled then
-				debug.setconstant(bedwars.DamageIndicator, 119, callback and 'Thickness' or 'Enabled')
+				pcall(function()
+					debug.setconstant(bedwars.DamageIndicator, 119, callback and 'Thickness' or 'Enabled')
+				end)
 				tab.strokeThickness = callback and 1 or false
 			end
 		end
@@ -13435,10 +13445,10 @@ run(function()
 					end
 				end)
 
-				-- Speed boost: +30 for 1.4s after jade hammer use (like AlSploit GetSpeed)
+				-- Speed boost: +30 for duration after jade hammer use
 				JadeHammerExploit:Clean(runService.Heartbeat:Connect(function(dt)
 					if not entitylib.isAlive then return end
-					if (tick() - lastJadeTick) > 1.4 then return end
+					if (tick() - lastJadeTick) > (BoostDuration.Value / 10) then return end
 
 					local root = entitylib.character.RootPart
 					if not root or not isnetworkowner(root) then return end
@@ -13460,6 +13470,16 @@ run(function()
 			end
 		end,
 		Tooltip = 'Auto Jade Hammer for high speed'
+	})
+
+	BoostDuration = JadeHammerExploit:CreateSlider({
+		Name = 'Duration',
+		Min = 1,
+		Max = 50,
+		Default = 14,
+		Suffix = function(val)
+			return string.format('%.1fs', val / 10)
+		end
 	})
 end)
 
