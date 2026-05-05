@@ -13354,55 +13354,213 @@ run(function()
 	})
 end)
 
+-- DamageBoost (ported from AlSploit - EntityDamageEventZap method)
 run(function()
 	local DamageBoost
 	local SpeedValue
-
-	local lastDamageTick = 0
-	local oldHealth = nil
+	local BoostDuration
+	local DamageBoostActive = false
 
 	DamageBoost = vape.Categories.Blatant:CreateModule({
 		Name = 'DamageBoost',
 		Function = function(callback)
 			if callback then
-				local function hookHealth()
-					if not entitylib.isAlive then return end
-					local hum = entitylib.character.Humanoid
-					if not hum then return end
-					oldHealth = hum.Health
-					DamageBoost:Clean(hum.HealthChanged:Connect(function(newHealth)
-						if newHealth < oldHealth then
-							lastDamageTick = tick() + 0.4
-						end
-						oldHealth = newHealth
-					end))
-				end
-
-				hookHealth()
-				DamageBoost:Clean(entitylib.Events.LocalAdded:Connect(hookHealth))
-
-				DamageBoost:Clean(runService.PreSimulation:Connect(function(dt)
+				DamageBoost:Clean(vapeEvents.EntityDamageEvent.Event:Connect(function(damageTable)
 					if not entitylib.isAlive then return end
 					if store.matchState == 0 then return end
-					if lastDamageTick < tick() then return end
+					if damageTable.entityInstance ~= lplr.Character then return end
+					if not damageTable.damage or damageTable.damage <= 4 then return end
+
+					DamageBoostActive = true
+					task.delay(BoostDuration.Value / 10, function()
+						DamageBoostActive = false
+					end)
+				end))
+
+				DamageBoost:Clean(runService.Heartbeat:Connect(function(dt)
+					if not DamageBoostActive then return end
+					if not entitylib.isAlive then return end
 
 					local root = entitylib.character.RootPart
 					if not root or not isnetworkowner(root) then return end
 
 					local moveDirection = entitylib.character.Humanoid.MoveDirection
-					if moveDirection.Magnitude > 0 then
-						root.CFrame = root.CFrame + (moveDirection * (SpeedValue.Value / 10) * dt)
+					if moveDirection.Magnitude == 0 then return end
+
+					local speedPos = moveDirection * (SpeedValue.Value / 10) * dt
+
+					local params = RaycastParams.new()
+					params.FilterDescendantsInstances = {collectionService:GetTagged('block')}
+					params.FilterType = Enum.RaycastFilterType.Include
+					local ray = workspace:Raycast(root.Position, speedPos, params)
+
+					if not ray then
+						root.CFrame = root.CFrame + speedPos
 					end
 				end))
 			end
 		end,
-		Tooltip = 'Increases your speed when taking damage'
+		Tooltip = 'Boosts speed when taking damage\\n(AlSploit method)'
 	})
 
 	SpeedValue = DamageBoost:CreateSlider({
 		Name = 'Speed',
 		Min = 1,
+		Max = 50,
+		Default = 20
+	})
+	BoostDuration = DamageBoost:CreateSlider({
+		Name = 'Duration',
+		Min = 1,
+		Max = 20,
+		Default = 6,
+		Suffix = function(val)
+			return string.format('%.1fs', val / 10)
+		end
+	})
+end)
+
+-- JadeHammerExploit (ported from AlSploit)
+run(function()
+	local JadeHammerExploit
+	local SpamSpeed
+	local lastJadeTick = 0
+
+	local function hasItem(itemName)
+		local inv = store.inventories[lplr]
+		if not inv then return false end
+		for _, v in inv.items do
+			if v.itemType == itemName then return true end
+		end
+		return false
+	end
+
+	JadeHammerExploit = vape.Categories.Blatant:CreateModule({
+		Name = 'JadeHammerExploit',
+		Function = function(callback)
+			if callback then
+				task.spawn(function()
+					while JadeHammerExploit.Enabled do
+						task.wait(1 / SpamSpeed.Value)
+						if not JadeHammerExploit.Enabled then break end
+						if not entitylib.isAlive then continue end
+						if store.matchState == 0 then continue end
+
+						if hasItem('jade_hammer') and (tick() - lastJadeTick) > 6 then
+							lastJadeTick = tick()
+							pcall(function()
+								bedwars.AbilityController:useAbility('jade_hammer_jump')
+							end)
+						end
+					end
+				end)
+			end
+		end,
+		Tooltip = 'Auto-uses Jade Hammer for speed boost'
+	})
+
+	SpamSpeed = JadeHammerExploit:CreateSlider({
+		Name = 'Speed',
+		Min = 1,
 		Max = 100,
-		Default = 43
+		Default = 100
+	})
+end)
+
+-- AntiLagback (ported from AlSploit - Clone bypass method)
+run(function()
+	local AntiLagback
+	local OldMoveFunction
+	local Clone
+
+	local function createClone()
+		if not entitylib.isAlive then return nil end
+		lplr.Character.Archivable = true
+		local clone = lplr.Character:Clone()
+		clone.Parent = workspace
+		clone.Name = 'Clone'
+		clone.PrimaryPart.CFrame = lplr.Character.PrimaryPart.CFrame
+		gameCamera.CameraSubject = clone.Humanoid
+
+		for _, v in clone:GetChildren() do
+			if v:IsA('BasePart') and v.Name ~= 'HumanoidRootPart' then
+				v.Transparency = 1
+			end
+			if v:IsA('Accessory') then
+				pcall(function() v:FindFirstChild('Handle').Transparency = 1 end)
+			end
+		end
+		pcall(function()
+			for _, v in clone:FindFirstChild('Head'):GetDescendants() do
+				v:Destroy()
+			end
+		end)
+		pcall(function()
+			for _, v in clone:GetDescendants() do
+				if v:IsA('BasePart') and v.Name == 'Cape' then v:Destroy() end
+			end
+		end)
+
+		return clone
+	end
+
+	AntiLagback = vape.Categories.Blatant:CreateModule({
+		Name = 'AntiLagback',
+		Function = function(callback)
+			if callback then
+				pcall(function()
+					OldMoveFunction = bedwars.Knit.Controllers.ControlModule and bedwars.Knit.Controllers.ControlModule.moveFunction
+				end)
+
+				AntiLagback:Clean(lplr:GetAttributeChangedSignal('LastTeleported'):Connect(function()
+					if not entitylib.isAlive then return end
+					if store.matchState == 0 then return end
+					if lplr.Character:FindFirstChildWhichIsA('ForceField') then return end
+
+					Clone = createClone()
+					if not Clone then return end
+
+					if OldMoveFunction and bedwars.Knit.Controllers.ControlModule then
+						bedwars.Knit.Controllers.ControlModule.moveFunction = function(Self, Vec, ...)
+							local lookVec = Vector3.new(gameCamera.CFrame.LookVector.X, 0, gameCamera.CFrame.LookVector.Z).Unit
+							if Clone and Clone.PrimaryPart then
+								local params = RaycastParams.new()
+								params.FilterDescendantsInstances = {collectionService:GetTagged('block')}
+								params.FilterType = Enum.RaycastFilterType.Include
+								local ray1 = workspace:Raycast(Clone.PrimaryPart.Position + lookVec, Vector3.new(0, -1000, 0), params)
+								local ray2 = workspace:Raycast((Clone.PrimaryPart.Position - Vector3.new(0, 15, 0)) + (lookVec * 5), Vector3.new(0, -1000, 0), params)
+								if ray1 or ray2 then
+									Clone.PrimaryPart.CFrame = CFrame.new(Clone.PrimaryPart.Position + (lookVec / 16))
+									Vec = lookVec
+								end
+							end
+							return OldMoveFunction(Self, Vec, ...)
+						end
+					end
+
+					task.wait(4.5)
+
+					if Clone then
+						if entitylib.isAlive then
+							gameCamera.CameraSubject = lplr.Character.Humanoid
+						end
+						if OldMoveFunction and bedwars.Knit.Controllers.ControlModule then
+							bedwars.Knit.Controllers.ControlModule.moveFunction = OldMoveFunction
+						end
+						Clone:Destroy()
+						Clone = nil
+					end
+				end))
+			else
+				if Clone then
+					Clone:Destroy()
+					Clone = nil
+				end
+				if OldMoveFunction and bedwars.Knit.Controllers.ControlModule then
+					bedwars.Knit.Controllers.ControlModule.moveFunction = OldMoveFunction
+				end
+			end
+		end,
+		Tooltip = 'Bypasses anticheat lagbacks\\nusing clone method'
 	})
 end)
