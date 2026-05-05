@@ -13357,36 +13357,14 @@ end)
 run(function()
 	local DamageBoost
 	local SpeedValue
-	local BoostDuration
-	local DamageAnim
-	local OnlyInCombat
 
 	local lastDamageTick = 0
 	local oldHealth = nil
-
-	-- Camera shake on damage (from Voidware)
-	local function doDamageAnimation()
-		local cam = gameCamera
-		task.spawn(function()
-			local originalRotation = cam.CFrame - cam.CFrame.Position
-			for i = 1, 5 do
-				task.wait(0.01)
-				local randomRotation = CFrame.Angles(
-					math.rad(math.random(-5, 5)),
-					math.rad(math.random(-5, 5)),
-					math.rad(math.random(-2, 2))
-				)
-				cam.CFrame = CFrame.new(cam.CFrame.Position) * randomRotation * originalRotation
-			end
-			cam.CFrame = CFrame.new(cam.CFrame.Position) * originalRotation
-		end)
-	end
 
 	DamageBoost = vape.Categories.Blatant:CreateModule({
 		Name = 'DamageBoost',
 		Function = function(callback)
 			if callback then
-				-- Track health changes (Voidware method - much more reliable than EntityDamageEvent)
 				local function hookHealth()
 					if not entitylib.isAlive then return end
 					local hum = entitylib.character.Humanoid
@@ -13394,10 +13372,7 @@ run(function()
 					oldHealth = hum.Health
 					DamageBoost:Clean(hum.HealthChanged:Connect(function(newHealth)
 						if newHealth < oldHealth then
-							lastDamageTick = tick() + (BoostDuration.Value / 10)
-							if DamageAnim.Enabled then
-								doDamageAnimation()
-							end
+							lastDamageTick = tick() + 0.4
 						end
 						oldHealth = newHealth
 					end))
@@ -13406,10 +13381,9 @@ run(function()
 				hookHealth()
 				DamageBoost:Clean(entitylib.Events.LocalAdded:Connect(hookHealth))
 
-				-- CFrame-based speed boost loop (Voidware method - bypasses AC velocity checks)
 				DamageBoost:Clean(runService.PreSimulation:Connect(function(dt)
 					if not entitylib.isAlive then return end
-					if OnlyInCombat.Enabled and store.matchState == 0 then return end
+					if store.matchState == 0 then return end
 					if lastDamageTick < tick() then return end
 
 					local root = entitylib.character.RootPart
@@ -13422,32 +13396,13 @@ run(function()
 				end))
 			end
 		end,
-		Tooltip = 'Boosts speed when taking damage\nusing CFrame movement (safe)'
+		Tooltip = 'Increases your speed when taking damage'
 	})
 
 	SpeedValue = DamageBoost:CreateSlider({
 		Name = 'Speed',
 		Min = 1,
 		Max = 100,
-		Default = 50
-	})
-	BoostDuration = DamageBoost:CreateSlider({
-		Name = 'Duration',
-		Min = 1,
-		Max = 20,
-		Default = 8,
-		Suffix = function(val)
-			return string.format('%.1fs', val / 10)
-		end
-	})
-	DamageAnim = DamageBoost:CreateToggle({
-		Name = 'Camera Shake',
-		Default = true,
-		Tooltip = 'Shakes camera when taking damage'
-	})
-	OnlyInCombat = DamageBoost:CreateToggle({
-		Name = 'Only in match',
-		Default = true,
-		Tooltip = 'Only activates during\nan active match'
+		Default = 23
 	})
 end)
