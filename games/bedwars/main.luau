@@ -13402,10 +13402,9 @@ run(function()
 	})
 end)
 
--- JadeHammerExploit (ported from AlSploit)
+-- JadeHammerExploit (from AlSploit - auto ability + speed boost)
 run(function()
 	local JadeHammerExploit
-	local SpamSpeed
 	local lastJadeTick = 0
 
 	local function hasItem(itemName)
@@ -13421,9 +13420,10 @@ run(function()
 		Name = 'JadeHammerExploit',
 		Function = function(callback)
 			if callback then
+				-- Auto-use jade_hammer_jump ability loop
 				task.spawn(function()
 					while JadeHammerExploit.Enabled do
-						task.wait(1 / SpamSpeed.Value)
+						task.wait(0.1)
 						if not JadeHammerExploit.Enabled then break end
 						if not entitylib.isAlive then continue end
 						if store.matchState == 0 then continue end
@@ -13436,16 +13436,32 @@ run(function()
 						end
 					end
 				end)
+
+				-- Speed boost: +30 for 1.4s after jade hammer use (like AlSploit GetSpeed)
+				JadeHammerExploit:Clean(runService.Heartbeat:Connect(function(dt)
+					if not entitylib.isAlive then return end
+					if (tick() - lastJadeTick) > 1.4 then return end
+
+					local root = entitylib.character.RootPart
+					if not root or not isnetworkowner(root) then return end
+
+					local moveDirection = entitylib.character.Humanoid.MoveDirection
+					if moveDirection.Magnitude == 0 then return end
+
+					local speedPos = moveDirection * 30 * dt
+
+					local params = RaycastParams.new()
+					params.FilterDescendantsInstances = {collectionService:GetTagged('block')}
+					params.FilterType = Enum.RaycastFilterType.Include
+					local ray = workspace:Raycast(root.Position, speedPos, params)
+
+					if not ray then
+						root.CFrame = root.CFrame + speedPos
+					end
+				end))
 			end
 		end,
-		Tooltip = 'Auto-uses Jade Hammer for speed boost'
-	})
-
-	SpamSpeed = JadeHammerExploit:CreateSlider({
-		Name = 'Speed',
-		Min = 1,
-		Max = 100,
-		Default = 100
+		Tooltip = 'Auto Jade Hammer for high speed'
 	})
 end)
 
