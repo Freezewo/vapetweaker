@@ -13354,11 +13354,9 @@ run(function()
 	})
 end)
 
--- DamageBoost (ported from AlSploit - EntityDamageEventZap method)
+-- DamageBoost (from AlSploit - exact copy)
 run(function()
 	local DamageBoost
-	local SpeedValue
-	local BoostDuration
 	local DamageBoostActive = false
 
 	DamageBoost = vape.Categories.Blatant:CreateModule({
@@ -13372,7 +13370,7 @@ run(function()
 					if not damageTable.damage or damageTable.damage <= 4 then return end
 
 					DamageBoostActive = true
-					task.delay(BoostDuration.Value / 10, function()
+					task.delay(0.6, function()
 						DamageBoostActive = false
 					end)
 				end))
@@ -13387,7 +13385,7 @@ run(function()
 					local moveDirection = entitylib.character.Humanoid.MoveDirection
 					if moveDirection.Magnitude == 0 then return end
 
-					local speedPos = moveDirection * (SpeedValue.Value / 10) * dt
+					local speedPos = moveDirection * 20 * dt
 
 					local params = RaycastParams.new()
 					params.FilterDescendantsInstances = {collectionService:GetTagged('block')}
@@ -13400,23 +13398,7 @@ run(function()
 				end))
 			end
 		end,
-		Tooltip = 'Boosts speed when taking damage\\n(AlSploit method)'
-	})
-
-	SpeedValue = DamageBoost:CreateSlider({
-		Name = 'Speed',
-		Min = 1,
-		Max = 50,
-		Default = 20
-	})
-	BoostDuration = DamageBoost:CreateSlider({
-		Name = 'Duration',
-		Min = 1,
-		Max = 20,
-		Default = 6,
-		Suffix = function(val)
-			return string.format('%.1fs', val / 10)
-		end
+		Tooltip = 'Boosts speed when taking damage'
 	})
 end)
 
