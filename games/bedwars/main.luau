@@ -2676,6 +2676,30 @@ run(function()
 		Name = 'Progress Bar',
 		Default = true
 	})
+	Fly:CreateToggle({
+		Name = 'Damage Animation',
+		Default = false,
+		Tooltip = 'Camera shake effect\nwhen flying without balloons',
+		Function = function(callback)
+			if callback and Fly.Enabled then
+				Fly:Clean(runService.RenderStepped:Connect(function()
+					if entitylib.isAlive then
+						local flyAllowed = (lplr.Character:GetAttribute('InflatedBalloons') and lplr.Character:GetAttribute('InflatedBalloons') > 0) or store.matchState == 2
+						if not flyAllowed then
+							local cam = gameCamera
+							local originalRotation = cam.CFrame - cam.CFrame.Position
+							local randomRotation = CFrame.Angles(
+								math.rad(math.random(-2, 2) * 0.3),
+								math.rad(math.random(-2, 2) * 0.3),
+								math.rad(math.random(-1, 1) * 0.2)
+							)
+							cam.CFrame = CFrame.new(cam.CFrame.Position) * randomRotation * originalRotation
+						end
+					end
+				end))
+			end
+		end
+	})
 end)
 	
 run(function()
@@ -13332,100 +13356,94 @@ end)
 
 run(function()
 	local DamageBoost
-	local SpeedBoostToggle
-	local SpeedBoostValue
+	local SpeedValue
 	local BoostDuration
-	local AutoJump
+	local DamageAnim
 	local OnlyInCombat
 
-	local boosting = false
-	local boostEnd = 0
+	local lastDamageTick = 0
+	local oldHealth = nil
+
+	-- Camera shake on damage (from Voidware)
+	local function doDamageAnimation()
+		local cam = gameCamera
+		task.spawn(function()
+			local originalRotation = cam.CFrame - cam.CFrame.Position
+			for i = 1, 5 do
+				task.wait(0.01)
+				local randomRotation = CFrame.Angles(
+					math.rad(math.random(-5, 5)),
+					math.rad(math.random(-5, 5)),
+					math.rad(math.random(-2, 2))
+				)
+				cam.CFrame = CFrame.new(cam.CFrame.Position) * randomRotation * originalRotation
+			end
+			cam.CFrame = CFrame.new(cam.CFrame.Position) * originalRotation
+		end)
+	end
 
 	DamageBoost = vape.Categories.Blatant:CreateModule({
 		Name = 'DamageBoost',
 		Function = function(callback)
 			if callback then
-				DamageBoost:Clean(vapeEvents.EntityDamageEvent.Event:Connect(function(data)
+				-- Track health changes (Voidware method - much more reliable than EntityDamageEvent)
+				local function hookHealth()
 					if not entitylib.isAlive then return end
-					if not data.entityInstance then return end
+					local hum = entitylib.character.Humanoid
+					if not hum then return end
+					oldHealth = hum.Health
+					DamageBoost:Clean(hum.HealthChanged:Connect(function(newHealth)
+						if newHealth < oldHealth then
+							lastDamageTick = tick() + 0.4
+							if DamageAnim.Enabled then
+								doDamageAnimation()
+							end
+						end
+						oldHealth = newHealth
+					end))
+				end
 
-					local localChar = lplr.Character
-					if not localChar or data.entityInstance ~= localChar then return end
+				hookHealth()
+				DamageBoost:Clean(entitylib.Events.LocalAdded:Connect(hookHealth))
+
+				-- CFrame-based speed boost loop (Voidware method - bypasses AC velocity checks)
+				DamageBoost:Clean(runService.PreSimulation:Connect(function(dt)
+					if not entitylib.isAlive then return end
+					if OnlyInCombat.Enabled and store.matchState == 0 then return end
+					if lastDamageTick < tick() then return end
 
 					local root = entitylib.character.RootPart
-					if not root then return end
+					if not root or not isnetworkowner(root) then return end
 
-					if OnlyInCombat.Enabled and store.matchState == 0 then return end
-
-					if AutoJump.Enabled and root.AssemblyLinearVelocity.Y < 5 then
-						root.AssemblyLinearVelocity = Vector3.new(
-							root.AssemblyLinearVelocity.X,
-							35,
-							root.AssemblyLinearVelocity.Z
-						)
-					end
-
-					if SpeedBoostToggle.Enabled then
-						boosting = true
-						boostEnd = tick() + (BoostDuration.Value / 10)
-
-						task.spawn(function()
-							while boosting and tick() < boostEnd and DamageBoost.Enabled and entitylib.isAlive do
-								local root2 = entitylib.character.RootPart
-								if root2 then
-									local moveDir = entitylib.character.Humanoid.MoveDirection
-									if moveDir.Magnitude > 0 then
-										local boostVel = moveDir * SpeedBoostValue.Value
-										root2.AssemblyLinearVelocity = Vector3.new(
-											boostVel.X,
-											root2.AssemblyLinearVelocity.Y,
-											boostVel.Z
-										)
-									end
-								end
-								task.wait()
-							end
-							boosting = false
-						end)
+					local moveDirection = entitylib.character.Humanoid.MoveDirection
+					if moveDirection.Magnitude > 0 then
+						root.CFrame = root.CFrame + (moveDirection * (SpeedValue.Value / 10) * dt)
 					end
 				end))
-			else
-				boosting = false
-				boostEnd = 0
 			end
 		end,
-		Tooltip = 'Massively boosts your movement speed\nwhen you take damage.'
+		Tooltip = 'Boosts speed when taking damage\nusing CFrame movement (safe)'
 	})
 
-	SpeedBoostToggle = DamageBoost:CreateToggle({
-		Name = 'Speed Boost',
-		Default = true,
-		Function = function(val)
-			if SpeedBoostValue then SpeedBoostValue.Object.Visible = val end
-			if BoostDuration then BoostDuration.Object.Visible = val end
-		end
-	})
-	SpeedBoostValue = DamageBoost:CreateSlider({
-		Name = 'Boost Speed',
-		Min = 16,
+	SpeedValue = DamageBoost:CreateSlider({
+		Name = 'Speed',
+		Min = 1,
 		Max = 100,
-		Default = 35,
-		Darker = true
+		Default = 23
 	})
 	BoostDuration = DamageBoost:CreateSlider({
 		Name = 'Duration',
 		Min = 1,
-		Max = 50,
-		Default = 15,
+		Max = 20,
+		Default = 4,
 		Suffix = function(val)
 			return string.format('%.1fs', val / 10)
-		end,
-		Darker = true
+		end
 	})
-	AutoJump = DamageBoost:CreateToggle({
-		Name = 'Auto Jump',
-		Default = false,
-		Tooltip = 'Automatically jumps when hit\nfor extra momentum'
+	DamageAnim = DamageBoost:CreateToggle({
+		Name = 'Camera Shake',
+		Default = true,
+		Tooltip = 'Shakes camera when taking damage'
 	})
 	OnlyInCombat = DamageBoost:CreateToggle({
 		Name = 'Only in match',
