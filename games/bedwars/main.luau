@@ -13529,7 +13529,8 @@ run(function()
 						), 3, 'info')
 					end
 
-					if killer and killed and killer == lplr and killed ~= lplr then
+					-- Trigger on any kill by local player (even if killed is nil/NPC)
+					if killer and killer == lplr then
 						if DebugMode.Enabled then
 							vape:CreateNotification('Debug', 'Valid kill! Trying exploit...', 3, 'info')
 						end
