@@ -13499,7 +13499,7 @@ run(function()
 					
 					local currentKit = store.equippedKit
 					if DebugMode.Enabled then
-						vape:CreateNotification('Debug', 'Current Kit: '..(currentKit or 'nil'), 3, 'info')
+						vape:CreateNotification('Debug', 'Kit: '..(currentKit or 'nil'), 2, 'info')
 					end
 					
 					if currentKit ~= 'wind_walker' then return end
@@ -13509,33 +13509,45 @@ run(function()
 
 					if killer and killed and killer == lplr and killed ~= lplr then
 						if DebugMode.Enabled then
-							vape:CreateNotification('Debug', 'Kill detected! Trying exploit...', 3, 'info')
+							vape:CreateNotification('Debug', 'Kill detected!', 2, 'info')
 						end
 						
 						-- Force use Zephyr ability (bypasses cooldown)
 						task.spawn(function()
 							task.wait(0.05)
 							
-							-- Try to reset cooldown first
-							local cooldownSuccess = pcall(function()
-								if bedwars.CooldownController then
-									bedwars.CooldownController:setOnCooldown('wind_walker_jump', 0, false)
+							-- Method 1: Try setOnCooldown with 0
+							local method1 = pcall(function()
+								bedwars.CooldownController:setOnCooldown('wind_walker_jump', 0, false)
+							end)
+							
+							-- Method 2: Try WindWalkerController directly
+							local method2 = pcall(function()
+								if bedwars.WindWalkerController and bedwars.WindWalkerController.spawnOrb then
+									bedwars.WindWalkerController:spawnOrb()
+								end
+							end)
+							
+							-- Method 3: Try to use ability directly (force bypass)
+							local method3 = pcall(function()
+								bedwars.AbilityController:useAbility('wind_walker_jump')
+							end)
+							
+							-- Method 4: Try Client:Get for wind_walker ability
+							local method4 = pcall(function()
+								local remote = bedwars.Client:Get('WindWalker_ClientUsedAbility')
+								if remote then
+									remote:SendToServer()
 								end
 							end)
 							
 							if DebugMode.Enabled then
-								vape:CreateNotification('Debug', 'Cooldown reset: '..(cooldownSuccess and 'OK' or 'FAIL'), 2, 'info')
-							end
-							
-							task.wait(0.05)
-							
-							-- Try to use ability
-							local abilitySuccess = pcall(function()
-								bedwars.AbilityController:useAbility('wind_walker_jump')
-							end)
-							
-							if DebugMode.Enabled then
-								vape:CreateNotification('Debug', 'Ability use: '..(abilitySuccess and 'OK' or 'FAIL'), 2, 'info')
+								vape:CreateNotification('Debug', string.format('M1:%s M2:%s M3:%s M4:%s', 
+									method1 and 'OK' or 'X',
+									method2 and 'OK' or 'X', 
+									method3 and 'OK' or 'X',
+									method4 and 'OK' or 'X'
+								), 3, 'info')
 							end
 							
 							if not DebugMode.Enabled and vape.Notifications.Enabled then
