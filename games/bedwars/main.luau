@@ -1632,6 +1632,150 @@ run(function()
         Default = 'Center'
 	})
 end)
+
+-- Bow Assist - Aims bow/projectiles at enemies
+run(function()
+	local BowAssist
+	local Targets
+	local Speed
+	local Angle
+	local FOV
+	local Mouse
+	local Blacklist
+	local Projectiles
+	local old
+	local rayCheck = RaycastParams.new()
+	rayCheck.FilterType = Enum.RaycastFilterType.Include
+	
+	local function findAim(cframe, target, dt, found, multi)
+		local speed = Speed.Value * dt * 15
+		local shake = math.random(-10, 10) / 100
+		local newcframe = CFrame.lookAt(cframe.Position, target + Vector3.new(shake, shake, shake))
+		return cframe:Lerp(newcframe, speed), speed
+	end
+	
+	local function getAttackData()
+		if not entitylib.isAlive then return nil end
+		if Mouse.Enabled and not inputService:IsMouseButtonPressed(Enum.UserInputType.MouseButton1) then return nil end
+		if Blacklist.Enabled and store.hand.itemType and table.find(Projectiles.ListEnabled, store.hand.itemType) then return nil end
+		
+		local methods = {'Damage', 'Distance'}
+		for i in sortmethods do
+			if not table.find(methods, i) then
+				table.insert(methods, i)
+			end
+		end
+		
+		return entitylib.EntityPosition({
+			Range = FOV.Value,
+			Wallcheck = Targets.Walls.Enabled,
+			Part = 'RootPart',
+			Players = Targets.Players.Enabled,
+			NPCs = Targets.NPCs.Enabled
+		})
+	end
+	
+	BowAssist = vape.Categories.Combat:CreateModule({
+		Name = 'Bow Assist',
+		Tooltip = 'Smoothly aims bow/projectiles at enemies',
+		Function = function(callback)
+			if callback then
+				local multi, predicted = 0, nil
+				local lastpredicted = 0
+				local lastent, found, update = nil, 0, 0
+
+				old = bedwars.ProjectileController.calculateImportantLaunchValues
+				bedwars.ProjectileController.calculateImportantLaunchValues = function(...)
+					local res = old(...)
+					local projmeta = select(2, ...)
+					multi = projmeta and (projmeta.velocityMultiplier + 2) or 0
+					if projmeta and tick() - update < 0.1 and lastent and lastent.RootPart then
+						local meta = projmeta:getProjectileMeta()
+						local gravity = (meta.gravitationalAcceleration or 196.2) * projmeta.gravityMultiplier
+						local calc = prediction.SolveTrajectory(entitylib.character.RootPart.Position, (meta.launchVelocity or 100) * (1 - lplr:GetNetworkPing()), gravity, lastent.RootPart.Position, lastent.RootPart.Velocity, workspace.Gravity, entitylib.character.HipHeight, nil, rayCheck)
+						predicted = calc
+						lastpredicted = tick()
+					else
+						predicted = nil
+					end
+					return res
+				end
+				
+				BowAssist:Clean(runService.PostSimulation:Connect(function(dt)
+					local ent = getAttackData()
+					if ent then
+						local delta = (ent.RootPart.Position - entitylib.character.RootPart.Position)
+						local localfacing = entitylib.character.RootPart.CFrame.LookVector * Vector3.new(1, 0, 1)
+						local angle = math.acos(localfacing:Dot((delta * Vector3.new(1, 0, 1)).Unit))
+						if angle >= (math.rad(Angle.Value) / 2) then return end
+						if ent ~= lastent then
+							found = tick()
+						end
+						lastent = ent
+						update = tick()
+						if tick() - lastpredicted < 0.1 then
+							targetinfo.Targets[ent] = tick() + 1
+							local cframe, speed = findAim(gameCamera.CFrame, predicted or ent.RootPart.Position, dt, found, multi + ((entitylib.character.RootPart.Position.Y - ent.RootPart.Position.Y) / 7))
+							if inputService.MouseEnabled and entitylib.character.Head.LocalTransparencyModifier == 1 then
+								gameCamera.CFrame = cframe
+							else
+								local viewport = gameCamera:WorldToViewportPoint(predicted)
+								local pos = (Vector2.new(viewport.X, viewport.Y) - inputService:GetMouseLocation()) * (speed / 15)
+								mousemoverel(pos.X, pos.Y)
+							end
+						end
+					end
+				end))
+			else
+				if old then
+					bedwars.ProjectileController.calculateImportantLaunchValues = old
+				end
+			end
+		end
+	})
+
+	Targets = BowAssist:CreateTargets({
+		Players = true,
+		Walls = true
+	})
+	Speed = BowAssist:CreateSlider({
+		Name = 'Aim speed',
+		Min = 1,
+		Max = 20,
+		Default = 7,
+		Suffix = 'sp/s'
+	})
+	Angle = BowAssist:CreateSlider({
+		Name = 'Max angle',
+		Min = 1,
+		Max = 360,
+		Default = 120
+	})
+	FOV = BowAssist:CreateSlider({
+		Name = 'FOV',
+		Min = 1,
+		Max = 1000,
+		Default = 200
+	})
+	Mouse = BowAssist:CreateToggle({
+		Name = 'Require mouse down',
+		Default = inputService.KeyboardEnabled
+	})
+	Blacklist = BowAssist:CreateToggle({
+		Name = 'Use blacklist',
+		Default = true,
+		Function = function(callback)
+			if Projectiles then
+				Projectiles.Object.Visible = callback
+			end
+		end
+	})
+	Projectiles = BowAssist:CreateTextList({
+		Name = 'Blacklisted',
+		Default = {'fireball', 'telepearl', 'gloop'},
+		Darker = true
+	})
+end)
 	
 run(function()
 	local AutoClicker
@@ -4748,6 +4892,133 @@ run(function()
 	})
 end)
 
+-- BulletTracers - Shows projectile paths (from CatV6)
+run(function()
+	local BulletTracers
+	local Material
+	local Color
+	local Fade
+	local DrawingToggle
+	local drawingobjs = {}
+	
+	BulletTracers = vape.Categories.Render:CreateModule({
+		Name = 'Bullet Tracers',
+		Tooltip = 'Shows paths of your projectiles',
+		Function = function(callback)
+			if callback then 
+				BulletTracers:Clean(workspace.ChildAdded:Connect(function(projectile)
+					task.delay(0, function()
+						if projectile:GetAttribute('ProjectileShooter') ~= lplr.UserId then return end
+						local origin = entitylib.character.RootPart.Position + Vector3.yAxis
+						local size, velocity = 1, Vector3.zero
+						
+						if DrawingToggle.Enabled then 
+							local obj = Drawing.new('Line')
+							obj.Color = Color3.fromHSV(Color.Hue, Color.Sat, Color.Value)
+							repeat
+								if projectile.PrimaryPart then
+									size, velocity = (origin - projectile.PrimaryPart.Position).Magnitude, projectile.PrimaryPart.Velocity
+									drawingobjs[obj] = {origin, origin + (velocity.Unit * (size * 2)), tick()}
+								end
+								task.wait()
+							until not projectile or not projectile.Parent
+							drawingobjs[obj] = nil
+							obj.Visible = false
+							obj:Remove()
+						else						
+							local obj = Instance.new('Part')
+							obj.Size = Vector3.new(0.05, 0.05, size * 2)
+							obj.CFrame = CFrame.lookAlong(origin + (velocity.Unit * size), velocity.Unit)
+							obj.CanCollide = false
+							obj.CanQuery = false
+							obj.Anchored = true
+							obj.Material = Enum.Material[Material.Value]
+							obj.Color = Color3.fromHSV(Color.Hue, Color.Sat, Color.Value)
+							obj.Transparency = 1 - Color.Opacity
+							obj.Parent = workspace
+							pcall(function()
+								velocity = projectile.PrimaryPart.Velocity
+								repeat
+									if projectile.PrimaryPart then
+										size, velocity = (origin - projectile.PrimaryPart.Position).Magnitude, velocity
+										obj.Size = Vector3.new(0.05, 0.05, size * 2)
+										obj.CFrame = CFrame.lookAlong(origin + (velocity.Unit * size), velocity.Unit)
+									end
+									task.wait()
+								until not projectile or not projectile.Parent
+							end)
+							if Fade.Enabled then 
+								local tween = tweenService:Create(obj, TweenInfo.new(1), {
+									Transparency = 0.5
+								})
+								tween.Completed:Connect(function() 
+									tween:Destroy() 
+									obj:Destroy()
+								end)
+								tween:Play()
+							else
+								obj:Destroy()
+							end
+						end
+					end)
+				end))
+	
+				if DrawingToggle.Enabled then
+					BulletTracers:Clean(runService.RenderStepped:Connect(function()
+						for obj, data in drawingobjs do 
+							local from, vis = gameCamera:WorldToViewportPoint(data[1])
+							local to, vis2 = gameCamera:WorldToViewportPoint(data[2])
+							if vis and vis2 then
+								obj.Visible = true
+								obj.From = Vector2.new(from.X, from.Y)
+								obj.To = Vector2.new(to.X, to.Y)
+								if Fade.Enabled then 
+									obj.Transparency = Color.Opacity * (1 - math.clamp((tick() - data[3]) / 2, 0, 1))
+								end
+							else
+								obj.Visible = false
+							end
+						end
+					end))
+				end
+			end
+		end
+	})
+	local materials = {'SmoothPlastic'}
+	for _, v in Enum.Material:GetEnumItems() do
+		if v.Name ~= 'SmoothPlastic' then 
+			table.insert(materials, v.Name) 
+		end
+	end
+	Material = BulletTracers:CreateDropdown({
+		Name = 'Material',
+		List = materials,
+		Default = 'SmoothPlastic'
+	})
+	Color = BulletTracers:CreateColorSlider({
+		Name = 'Tracer Color',
+		DefaultHue = 0.6,
+		DefaultSat = 1,
+		DefaultValue = 1,
+		DefaultOpacity = 0.5
+	})
+	Fade = BulletTracers:CreateToggle({
+		Name = 'Fade',
+		Default = true,
+		Tooltip = 'Fades out tracers over time'
+	})
+	DrawingToggle = BulletTracers:CreateToggle({
+		Name = 'Drawing',
+		Tooltip = '2D drawing mode (better performance)',
+		Function = function()
+			if BulletTracers.Enabled then 
+				BulletTracers:Toggle()
+				BulletTracers:Toggle()
+			end
+		end
+	})
+end)
+
 run(function() 
 	local HiveESP
 	local Color
@@ -6446,17 +6717,23 @@ run(function()
 		Function = function(callback)
 			if callback then
 				local check
+				local lasty
+				
 				repeat
-					if entitylib.isAlive then
+					if entitylib.isAlive and (not Limit.Enabled or store.hand.tool and store.hand.tool.Name == 'telepearl') then
 						local root = entitylib.character.RootPart
 						local pearl = getItem('telepearl')
-						rayCheck.FilterDescendantsInstances = {lplr.Character, gameCamera, AntiFallPart}
+						rayCheck.FilterDescendantsInstances = {store.map}
 						rayCheck.CollisionGroup = root.CollisionGroup
+
+						if entitylib.character.Humanoid.FloorMaterial ~= Enum.Material.Air then
+							lasty = root.CFrame
+						end
 	
 						if pearl and root.Velocity.Y < -100 and not workspace:Raycast(root.Position, Vector3.new(0, -200, 0), rayCheck) then
-							if not check then
+							if not check or not Check.Enabled then
 								check = true
-								local ground = getNearGround(20)
+								local ground = getNearGround(20) or (lasty and lasty.Position + Vector3.new(0, 5, 0))
 	
 								if ground then
 									firePearl(root.Position, ground, pearl)
@@ -6471,6 +6748,47 @@ run(function()
 			end
 		end,
 		Tooltip = 'Automatically throws a pearl onto nearby ground after\nfalling a certain distance.'
+	})
+
+	Legit = AutoPearl:CreateToggle({
+		Name = 'Legit Switch',
+		Tooltip = 'Visualizes the switching clientside',
+		Default = true
+	})
+	Back = AutoPearl:CreateToggle({
+		Name = 'Switch back',
+		Tooltip = 'Switches back to the last slot before pearl',
+		Default = true,
+		Function = function(callback)
+			if BackDelay then
+				BackDelay.Object.Visible = callback
+			end
+			if LandCheck then
+				LandCheck.Object.Visible = callback
+			end
+		end
+	})
+	LandCheck = AutoPearl:CreateToggle({
+		Name = 'Only after landed',
+		Tooltip = 'Only switches back after your pearl landed',
+		Darker = true
+	})
+	Check = AutoPearl:CreateToggle({
+		Name = 'Pearl check',
+		Tooltip = 'Doesn\'t throw a pearl if ur already pearling',
+		Default = true
+	})
+	BackDelay = AutoPearl:CreateTwoSlider({
+		Name = 'Switch Back Delay',
+		Min = 0,
+		Max = 2,
+		DefaultMin = 0.1,
+		DefaultMax = 0.2,
+		Darker = true
+	})
+	Limit = AutoPearl:CreateToggle({
+		Name = 'Limit to item',
+		Tooltip = 'Only throws pearl when holding a pearl'
 	})
 end)
 	
