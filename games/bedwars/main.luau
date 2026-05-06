@@ -13484,89 +13484,197 @@ run(function()
 	})
 end)
 
--- ZephyrExploit - Infinite orbs with anticheat bypass attempts
+-- ZephyrFly - Fly with 70 studs speed by default
 run(function()
-	local ZephyrExploit
-	local BypassMethod
+	local ZephyrFly
+	local Value
+	local VerticalValue
+	local WallCheck
+	local PopBalloons
+	local TP
+	local ProgressBar
+	local up, down, old, progressgui = 0, 0, nil, nil
 
-	ZephyrExploit = vape.Categories.Blatant:CreateModule({
-		Name = 'ZephyrExploit',
+	ZephyrFly = vape.Categories.Blatant:CreateModule({
+		Name = 'ZephyrFly',
 		Function = function(callback)
+			frictionTable.ZephyrFly = callback or nil
+			updateVelocity()
 			if callback then
-				-- Give orbs on enable
-				task.spawn(function()
-					task.wait(0.5)
-					if store.equippedKit == 'wind_walker' then
-						local orbCount = 2
-						local multiplier = 1.15
-						
-						-- Apply bypass method
-						if BypassMethod.Value == 'NaN Values' then
-							-- Use NaN to confuse anticheat
-							multiplier = 0/0 -- NaN
-							orbCount = 0/0 -- NaN
-						elseif BypassMethod.Value == 'Negative Values' then
-							-- Negative values might bypass checks
-							multiplier = -1.15
-							orbCount = -2
-						elseif BypassMethod.Value == 'Huge Values' then
-							-- Huge values that wrap around
-							multiplier = math.huge
-							orbCount = math.huge
-						elseif BypassMethod.Value == 'Zero Values' then
-							-- Zero might bypass
-							multiplier = 0
-							orbCount = 0
-						elseif BypassMethod.Value == 'Normal' then
-							-- Normal values
-							multiplier = 1.15
-							orbCount = 2
+				up, down, old = 0, 0, bedwars.BalloonController.deflateBalloon
+				bedwars.BalloonController.deflateBalloon = function() end
+				local tpTick, tpToggle, oldy, started = tick(), true, nil, nil
+				if ProgressBar.Enabled then
+					local duration = 2.5
+					started = tick()
+					progressgui = Instance.new('ScreenGui')
+					progressgui.Name = 'ZephyrFlyProgressBar'
+					progressgui.ResetOnSpawn = false
+					progressgui.Parent = lplr.PlayerGui
+					local label = Instance.new('TextLabel')
+					label.Size = UDim2.fromOffset(120, 18)
+					label.Position = UDim2.new(0.5, -60, 1, -190)
+					label.BackgroundTransparency = 1
+					label.TextColor3 = Color3.new(1, 1, 1)
+					label.TextStrokeTransparency = 0
+					label.TextSize = 14
+					label.Font = Enum.Font.Arial
+					label.Parent = progressgui
+					local holder = Instance.new('Frame')
+					holder.Size = UDim2.fromOffset(280, 20)
+					holder.Position = UDim2.new(0.5, -140, 1, -170)
+					holder.BackgroundTransparency = 1
+					holder.Parent = progressgui
+					local bar = Instance.new('Frame')
+					bar.Size = UDim2.fromScale(1, 1)
+					bar.BackgroundColor3 = Color3.fromHSV(vape.GUIColor.Hue, vape.GUIColor.Sat, vape.GUIColor.Value)
+					bar.BorderSizePixel = 0
+					bar.Parent = holder
+					ZephyrFly:Clean(runService.RenderStepped:Connect(function()
+						local progress = ((tick() - started) % duration) / duration
+						local remaining = duration - (progress * duration)
+						label.Text = string.format('%.1fs', remaining)
+						bar.Size = UDim2.fromScale(1 - progress, 1)
+						bar.BackgroundColor3 = Color3.fromHSV(vape.GUIColor.Hue, vape.GUIColor.Sat, vape.GUIColor.Value)
+					end))
+				end
+
+				if lplr.Character and (lplr.Character:GetAttribute('InflatedBalloons') or 0) == 0 and getItem('balloon') then
+					bedwars.BalloonController:inflateBalloon()
+				end
+				ZephyrFly:Clean(vapeEvents.AttributeChanged.Event:Connect(function(changed)
+					if changed == 'InflatedBalloons' and (lplr.Character:GetAttribute('InflatedBalloons') or 0) == 0 and getItem('balloon') then
+						bedwars.BalloonController:inflateBalloon()
+					end
+				end))
+				ZephyrFly:Clean(runService.PreSimulation:Connect(function(dt)
+					if shared.AnticheatBypassing then return end
+					if entitylib.isAlive and isnetworkowner(entitylib.character.RootPart) then
+						local flyAllowed = (lplr.Character:GetAttribute('InflatedBalloons') and lplr.Character:GetAttribute('InflatedBalloons') > 0) or store.matchState == 2
+						local mass = (1.5 + (flyAllowed and 6 or 0) * (tick() % 0.4 < 0.2 and -1 or 1)) + ((up + down) * VerticalValue.Value)
+						local root, moveDirection = entitylib.character.RootPart, entitylib.character.Humanoid.MoveDirection
+						local velo = getSpeed()
+						local destination = (moveDirection * math.max(Value.Value - velo, 0) * dt)
+						local rayCheck = RaycastParams.new()
+						rayCheck.RespectCanCollide = true
+						rayCheck.FilterDescendantsInstances = {lplr.Character, gameCamera, AntiFallPart}
+						rayCheck.CollisionGroup = root.CollisionGroup
+
+						if WallCheck.Enabled then
+							local ray = workspace:Raycast(root.Position, destination, rayCheck)
+							if ray then
+								destination = ((ray.Position + ray.Normal) - root.Position)
+							end
 						end
-						
-						pcall(function()
-							local Event = game:GetService("ReplicatedStorage").rbxts_include.node_modules["@rbxts"].net.out._NetManaged.WindWalkerSpeedUpdate
-							firesignal(Event.OnClientEvent, {
-								multiplier = multiplier,
-								orbCount = orbCount
-							})
-						end)
-						
-						if vape.Notifications.Enabled then
-							vape:CreateNotification('ZephyrExploit', 'Orbs given with '..BypassMethod.Value, 2, 'info')
+
+						if not flyAllowed then
+							if tpToggle then
+								local airleft = (tick() - entitylib.character.AirTime)
+								if airleft > 1.7 then
+									if not oldy then
+										local ray = workspace:Raycast(root.Position, Vector3.new(0, -1000, 0), rayCheck)
+										if ray and TP.Enabled then
+											tpToggle = false
+											oldy = root.Position.Y
+											tpTick = tick() + 0.06
+											if started then
+												started = tick()
+											end
+											root.CFrame = CFrame.lookAlong(Vector3.new(root.Position.X, ray.Position.Y + entitylib.character.HipHeight, root.Position.Z), root.CFrame.LookVector)
+										end
+									end
+								end
+							else
+								if oldy then
+									if tpTick < tick() then
+										local newpos = Vector3.new(root.Position.X, oldy, root.Position.Z)
+										root.CFrame = CFrame.lookAlong(newpos, root.CFrame.LookVector)
+										tpToggle = true
+										oldy = nil
+									else
+										mass = 0
+									end
+								end
+							end
+						end
+
+						root.CFrame += destination
+						root.AssemblyLinearVelocity = (moveDirection * velo) + Vector3.new(0, mass, 0)
+					end
+				end))
+				ZephyrFly:Clean(inputService.InputBegan:Connect(function(input)
+					if not inputService:GetFocusedTextBox() then
+						if input.KeyCode == Enum.KeyCode.Space or input.KeyCode == Enum.KeyCode.ButtonA then
+							up = 1
+						elseif input.KeyCode == Enum.KeyCode.LeftShift or input.KeyCode == Enum.KeyCode.ButtonL2 then
+							down = -1
 						end
 					end
-				end)
-				
-				-- Auto refill loop (only with normal values to avoid spam)
-				if BypassMethod.Value == 'Normal' then
-					task.spawn(function()
-						while ZephyrExploit.Enabled do
-							task.wait(1)
-							if not ZephyrExploit.Enabled then break end
-							if store.equippedKit ~= 'wind_walker' then continue end
-							if not entitylib.isAlive then continue end
-							
-							pcall(function()
-								local Event = game:GetService("ReplicatedStorage").rbxts_include.node_modules["@rbxts"].net.out._NetManaged.WindWalkerSpeedUpdate
-								firesignal(Event.OnClientEvent, {
-									multiplier = 1.15,
-									orbCount = 2
-								})
-							end)
-						end
+				end))
+				ZephyrFly:Clean(inputService.InputEnded:Connect(function(input)
+					if input.KeyCode == Enum.KeyCode.Space or input.KeyCode == Enum.KeyCode.ButtonA then
+						up = 0
+					elseif input.KeyCode == Enum.KeyCode.LeftShift or input.KeyCode == Enum.KeyCode.ButtonL2 then
+						down = 0
+					end
+				end))
+				if inputService.TouchEnabled then
+					pcall(function()
+						local jumpButton = lplr.PlayerGui.TouchGui.TouchControlFrame.JumpButton
+						ZephyrFly:Clean(jumpButton:GetPropertyChangedSignal('ImageRectOffset'):Connect(function()
+							up = jumpButton.ImageRectOffset.X == 146 and 1 or 0
+						end))
 					end)
+				end
+			else
+				bedwars.BalloonController.deflateBalloon = old
+				if progressgui then
+					progressgui:Destroy()
+					progressgui = nil
+				end
+				if PopBalloons.Enabled and entitylib.isAlive and (lplr.Character:GetAttribute('InflatedBalloons') or 0) > 0 then
+					for _ = 1, 3 do
+						bedwars.BalloonController:deflateBalloon()
+					end
 				end
 			end
 		end,
-		Tooltip = 'Infinite Zephyr orbs - try different bypass methods to avoid flagging'
+		Tooltip = 'Fly with 70 studs speed'
 	})
 	
-	BypassMethod = ZephyrExploit:CreateDropdown({
-		Name = 'Bypass Method',
-		List = {'Normal', 'NaN Values', 'Negative Values', 'Huge Values', 'Zero Values'},
-		Default = 'Normal',
-		Function = function() end,
-		Tooltip = 'Try different methods to bypass anticheat'
+	Value = ZephyrFly:CreateSlider({
+		Name = 'Speed',
+		Min = 1,
+		Max = 150,
+		Default = 70,
+		Suffix = function(val)
+			return val == 1 and 'stud' or 'studs'
+		end
+	})
+	VerticalValue = ZephyrFly:CreateSlider({
+		Name = 'Vertical Speed',
+		Min = 1,
+		Max = 150,
+		Default = 50,
+		Suffix = function(val)
+			return val == 1 and 'stud' or 'studs'
+		end
+	})
+	WallCheck = ZephyrFly:CreateToggle({
+		Name = 'Wall Check',
+		Default = true
+	})
+	PopBalloons = ZephyrFly:CreateToggle({
+		Name = 'Pop Balloons',
+		Default = true
+	})
+	TP = ZephyrFly:CreateToggle({
+		Name = 'TP Down',
+		Default = true
+	})
+	ProgressBar = ZephyrFly:CreateToggle({
+		Name = 'Progress Bar',
+		Default = true
 	})
 end)
 
