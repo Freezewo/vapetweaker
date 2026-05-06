@@ -4203,6 +4203,44 @@ run(function()
 										task.spawn(function()
 											local dir, id = CFrame.lookAt(pos, calc).LookVector, httpService:GenerateGUID(true)
 											local shootPosition = (CFrame.new(pos, calc) * CFrame.new(Vector3.new(-bedwars.BowConstantsTable.RelX, -bedwars.BowConstantsTable.RelY, -bedwars.BowConstantsTable.RelZ))).Position
+											
+											-- Create tracer if enabled
+											if Tracers.Enabled then
+												task.spawn(function()
+													local tracer = Instance.new('Part')
+													tracer.Name = 'ProjectileTracer'
+													tracer.Anchored = true
+													tracer.CanCollide = false
+													tracer.Size = Vector3.new(0.1, 0.1, (shootPosition - calc).Magnitude)
+													tracer.CFrame = CFrame.lookAt(shootPosition, calc) * CFrame.new(0, 0, -tracer.Size.Z / 2)
+													tracer.Material = Enum.Material.Neon
+													tracer.Color = Color3.fromHSV(TracerColor.Hue, TracerColor.Sat, TracerColor.Value)
+													tracer.Transparency = 0.3
+													tracer.Parent = workspace
+													
+													-- Add glow effect
+													if TracerGlow.Enabled then
+														local pointLight = Instance.new('PointLight')
+														pointLight.Brightness = 2
+														pointLight.Range = 10
+														pointLight.Color = Color3.fromHSV(TracerColor.Hue, TracerColor.Sat, TracerColor.Value)
+														pointLight.Parent = tracer
+													end
+													
+													-- Fade out animation
+													task.spawn(function()
+														local startTime = tick()
+														local duration = TracerDuration.Value
+														while tick() - startTime < duration and tracer.Parent do
+															local progress = (tick() - startTime) / duration
+															tracer.Transparency = 0.3 + (0.7 * progress)
+															task.wait()
+														end
+														tracer:Destroy()
+													end)
+												end)
+											end
+											
 											bedwars.ProjectileController:createLocalProjectile(meta, ammo, projectile, shootPosition, id, dir * projSpeed, {drawDurationSeconds = 1})
 											local res = projectileRemote:InvokeServer(item.tool, ammo, projectile, shootPosition, pos, dir * projSpeed, id, {drawDurationSeconds = 1, shotId = httpService:GenerateGUID(false)}, workspace:GetServerTimeNow() - 0.045)
 											if not res then
@@ -4225,11 +4263,11 @@ run(function()
 							end
 						end
 					end
-					task.wait(0.1)
+					task.wait(Delay.Value)
 				until not ProjectileAura.Enabled
 			end
 		end,
-		Tooltip = 'Shoots people around you'
+		Tooltip = 'Shoots people around you with tracers'
 	})
 	Targets = ProjectileAura:CreateTargets({
 		Players = true,
@@ -4247,6 +4285,53 @@ run(function()
 		Suffix = function(val)
 			return val == 1 and 'stud' or 'studs'
 		end
+	})
+	Delay = ProjectileAura:CreateSlider({
+		Name = 'Delay',
+		Min = 0.01,
+		Max = 1,
+		Default = 0.1,
+		Decimal = 100,
+		Suffix = function(val)
+			return 's'
+		end,
+		Tooltip = 'Lower = faster shooting'
+	})
+	Tracers = ProjectileAura:CreateToggle({
+		Name = 'Tracers',
+		Default = true,
+		Function = function(callback)
+			TracerColor.Object.Visible = callback
+			TracerDuration.Object.Visible = callback
+			TracerGlow.Object.Visible = callback
+		end,
+		Tooltip = 'Shows where projectiles are going'
+	})
+	TracerColor = ProjectileAura:CreateColorSlider({
+		Name = 'Tracer Color',
+		DefaultHue = 0.6,
+		DefaultSat = 1,
+		DefaultValue = 1,
+		Darker = true,
+		Tooltip = 'Color of the tracers'
+	})
+	TracerDuration = ProjectileAura:CreateSlider({
+		Name = 'Tracer Duration',
+		Min = 0.5,
+		Max = 5,
+		Default = 2,
+		Decimal = 10,
+		Darker = true,
+		Suffix = function(val)
+			return 's'
+		end,
+		Tooltip = 'How long tracers stay visible'
+	})
+	TracerGlow = ProjectileAura:CreateToggle({
+		Name = 'Tracer Glow',
+		Default = true,
+		Darker = true,
+		Tooltip = 'Adds glow effect to tracers'
 	})
 end)
 	
@@ -13481,135 +13566,6 @@ run(function()
 		Suffix = function(val)
 			return string.format('%.1fs', val / 10)
 		end
-	})
-end)
-
--- ZephyrFly - Simple fly with 70 studs speed
-run(function()
-	local ZephyrFly
-	local Value
-	local ProgressBar
-	local up, down, old, progressgui = 0, 0, nil, nil
-
-	ZephyrFly = vape.Categories.Blatant:CreateModule({
-		Name = 'ZephyrFly',
-		Function = function(callback)
-			frictionTable.ZephyrFly = callback or nil
-			updateVelocity()
-			if callback then
-				up, down, old = 0, 0, bedwars.BalloonController.deflateBalloon
-				bedwars.BalloonController.deflateBalloon = function() end
-				local started = nil
-				
-				if ProgressBar.Enabled then
-					local duration = 2.5
-					started = tick()
-					progressgui = Instance.new('ScreenGui')
-					progressgui.Name = 'ZephyrFlyProgressBar'
-					progressgui.ResetOnSpawn = false
-					progressgui.Parent = lplr.PlayerGui
-					local label = Instance.new('TextLabel')
-					label.Size = UDim2.fromOffset(120, 18)
-					label.Position = UDim2.new(0.5, -60, 1, -190)
-					label.BackgroundTransparency = 1
-					label.TextColor3 = Color3.new(1, 1, 1)
-					label.TextStrokeTransparency = 0
-					label.TextSize = 14
-					label.Font = Enum.Font.Arial
-					label.Parent = progressgui
-					local holder = Instance.new('Frame')
-					holder.Size = UDim2.fromOffset(280, 20)
-					holder.Position = UDim2.new(0.5, -140, 1, -170)
-					holder.BackgroundTransparency = 1
-					holder.Parent = progressgui
-					local bar = Instance.new('Frame')
-					bar.Size = UDim2.fromScale(1, 1)
-					bar.BackgroundColor3 = Color3.fromHSV(vape.GUIColor.Hue, vape.GUIColor.Sat, vape.GUIColor.Value)
-					bar.BorderSizePixel = 0
-					bar.Parent = holder
-					ZephyrFly:Clean(runService.RenderStepped:Connect(function()
-						local progress = ((tick() - started) % duration) / duration
-						local remaining = duration - (progress * duration)
-						label.Text = string.format('%.1fs', remaining)
-						bar.Size = UDim2.fromScale(1 - progress, 1)
-						bar.BackgroundColor3 = Color3.fromHSV(vape.GUIColor.Hue, vape.GUIColor.Sat, vape.GUIColor.Value)
-					end))
-				end
-
-				if lplr.Character and (lplr.Character:GetAttribute('InflatedBalloons') or 0) == 0 and getItem('balloon') then
-					bedwars.BalloonController:inflateBalloon()
-				end
-				ZephyrFly:Clean(vapeEvents.AttributeChanged.Event:Connect(function(changed)
-					if changed == 'InflatedBalloons' and (lplr.Character:GetAttribute('InflatedBalloons') or 0) == 0 and getItem('balloon') then
-						bedwars.BalloonController:inflateBalloon()
-					end
-				end))
-				ZephyrFly:Clean(runService.PreSimulation:Connect(function(dt)
-					if shared.AnticheatBypassing then return end
-					if entitylib.isAlive and isnetworkowner(entitylib.character.RootPart) then
-						local flyAllowed = (lplr.Character:GetAttribute('InflatedBalloons') and lplr.Character:GetAttribute('InflatedBalloons') > 0) or store.matchState == 2
-						local mass = (1.5 + (flyAllowed and 6 or 0) * (tick() % 0.4 < 0.2 and -1 or 1)) + ((up + down) * 50)
-						local root, moveDirection = entitylib.character.RootPart, entitylib.character.Humanoid.MoveDirection
-						local velo = getSpeed()
-						local destination = (moveDirection * math.max(Value.Value - velo, 0) * dt)
-
-						root.CFrame += destination
-						root.AssemblyLinearVelocity = (moveDirection * velo) + Vector3.new(0, mass, 0)
-					end
-				end))
-				ZephyrFly:Clean(inputService.InputBegan:Connect(function(input)
-					if not inputService:GetFocusedTextBox() then
-						if input.KeyCode == Enum.KeyCode.Space or input.KeyCode == Enum.KeyCode.ButtonA then
-							up = 1
-						elseif input.KeyCode == Enum.KeyCode.LeftShift or input.KeyCode == Enum.KeyCode.ButtonL2 then
-							down = -1
-						end
-					end
-				end))
-				ZephyrFly:Clean(inputService.InputEnded:Connect(function(input)
-					if input.KeyCode == Enum.KeyCode.Space or input.KeyCode == Enum.KeyCode.ButtonA then
-						up = 0
-					elseif input.KeyCode == Enum.KeyCode.LeftShift or input.KeyCode == Enum.KeyCode.ButtonL2 then
-						down = 0
-					end
-				end))
-				if inputService.TouchEnabled then
-					pcall(function()
-						local jumpButton = lplr.PlayerGui.TouchGui.TouchControlFrame.JumpButton
-						ZephyrFly:Clean(jumpButton:GetPropertyChangedSignal('ImageRectOffset'):Connect(function()
-							up = jumpButton.ImageRectOffset.X == 146 and 1 or 0
-						end))
-					end)
-				end
-			else
-				bedwars.BalloonController.deflateBalloon = old
-				if progressgui then
-					progressgui:Destroy()
-					progressgui = nil
-				end
-				if entitylib.isAlive and (lplr.Character:GetAttribute('InflatedBalloons') or 0) > 0 then
-					for _ = 1, 3 do
-						bedwars.BalloonController:deflateBalloon()
-					end
-				end
-			end
-		end,
-		Tooltip = 'Simple fly with 70 studs speed'
-	})
-	
-	Value = ZephyrFly:CreateSlider({
-		Name = 'Speed',
-		Min = 1,
-		Max = 150,
-		Default = 70,
-		Suffix = function(val)
-			return val == 1 and 'stud' or 'studs'
-		end
-	})
-	
-	ProgressBar = ZephyrFly:CreateToggle({
-		Name = 'Progress Bar',
-		Default = true
 	})
 end)
 
