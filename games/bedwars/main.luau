@@ -13484,14 +13484,10 @@ run(function()
 	})
 end)
 
--- ZephyrFly - Fly with 70 studs speed by default
+-- ZephyrFly - Simple fly with 70 studs speed
 run(function()
 	local ZephyrFly
 	local Value
-	local VerticalValue
-	local WallCheck
-	local PopBalloons
-	local TP
 	local ProgressBar
 	local up, down, old, progressgui = 0, 0, nil, nil
 
@@ -13503,7 +13499,8 @@ run(function()
 			if callback then
 				up, down, old = 0, 0, bedwars.BalloonController.deflateBalloon
 				bedwars.BalloonController.deflateBalloon = function() end
-				local tpTick, tpToggle, oldy, started = tick(), true, nil, nil
+				local started = nil
+				
 				if ProgressBar.Enabled then
 					local duration = 2.5
 					started = tick()
@@ -13551,52 +13548,10 @@ run(function()
 					if shared.AnticheatBypassing then return end
 					if entitylib.isAlive and isnetworkowner(entitylib.character.RootPart) then
 						local flyAllowed = (lplr.Character:GetAttribute('InflatedBalloons') and lplr.Character:GetAttribute('InflatedBalloons') > 0) or store.matchState == 2
-						local mass = (1.5 + (flyAllowed and 6 or 0) * (tick() % 0.4 < 0.2 and -1 or 1)) + ((up + down) * VerticalValue.Value)
+						local mass = (1.5 + (flyAllowed and 6 or 0) * (tick() % 0.4 < 0.2 and -1 or 1)) + ((up + down) * 50)
 						local root, moveDirection = entitylib.character.RootPart, entitylib.character.Humanoid.MoveDirection
 						local velo = getSpeed()
 						local destination = (moveDirection * math.max(Value.Value - velo, 0) * dt)
-						local rayCheck = RaycastParams.new()
-						rayCheck.RespectCanCollide = true
-						rayCheck.FilterDescendantsInstances = {lplr.Character, gameCamera, AntiFallPart}
-						rayCheck.CollisionGroup = root.CollisionGroup
-
-						if WallCheck.Enabled then
-							local ray = workspace:Raycast(root.Position, destination, rayCheck)
-							if ray then
-								destination = ((ray.Position + ray.Normal) - root.Position)
-							end
-						end
-
-						if not flyAllowed then
-							if tpToggle then
-								local airleft = (tick() - entitylib.character.AirTime)
-								if airleft > 1.7 then
-									if not oldy then
-										local ray = workspace:Raycast(root.Position, Vector3.new(0, -1000, 0), rayCheck)
-										if ray and TP.Enabled then
-											tpToggle = false
-											oldy = root.Position.Y
-											tpTick = tick() + 0.06
-											if started then
-												started = tick()
-											end
-											root.CFrame = CFrame.lookAlong(Vector3.new(root.Position.X, ray.Position.Y + entitylib.character.HipHeight, root.Position.Z), root.CFrame.LookVector)
-										end
-									end
-								end
-							else
-								if oldy then
-									if tpTick < tick() then
-										local newpos = Vector3.new(root.Position.X, oldy, root.Position.Z)
-										root.CFrame = CFrame.lookAlong(newpos, root.CFrame.LookVector)
-										tpToggle = true
-										oldy = nil
-									else
-										mass = 0
-									end
-								end
-							end
-						end
 
 						root.CFrame += destination
 						root.AssemblyLinearVelocity = (moveDirection * velo) + Vector3.new(0, mass, 0)
@@ -13632,14 +13587,14 @@ run(function()
 					progressgui:Destroy()
 					progressgui = nil
 				end
-				if PopBalloons.Enabled and entitylib.isAlive and (lplr.Character:GetAttribute('InflatedBalloons') or 0) > 0 then
+				if entitylib.isAlive and (lplr.Character:GetAttribute('InflatedBalloons') or 0) > 0 then
 					for _ = 1, 3 do
 						bedwars.BalloonController:deflateBalloon()
 					end
 				end
 			end
 		end,
-		Tooltip = 'Fly with 70 studs speed'
+		Tooltip = 'Simple fly with 70 studs speed'
 	})
 	
 	Value = ZephyrFly:CreateSlider({
@@ -13651,27 +13606,7 @@ run(function()
 			return val == 1 and 'stud' or 'studs'
 		end
 	})
-	VerticalValue = ZephyrFly:CreateSlider({
-		Name = 'Vertical Speed',
-		Min = 1,
-		Max = 150,
-		Default = 50,
-		Suffix = function(val)
-			return val == 1 and 'stud' or 'studs'
-		end
-	})
-	WallCheck = ZephyrFly:CreateToggle({
-		Name = 'Wall Check',
-		Default = true
-	})
-	PopBalloons = ZephyrFly:CreateToggle({
-		Name = 'Pop Balloons',
-		Default = true
-	})
-	TP = ZephyrFly:CreateToggle({
-		Name = 'TP Down',
-		Default = true
-	})
+	
 	ProgressBar = ZephyrFly:CreateToggle({
 		Name = 'Progress Bar',
 		Default = true
