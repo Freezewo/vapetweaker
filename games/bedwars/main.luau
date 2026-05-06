@@ -13484,12 +13484,13 @@ run(function()
 	})
 end)
 
--- ZephyrExploit - WORKING VERSION (firesignal method from competitor)
+-- ZephyrExploit - WORKING VERSION with server sync
 run(function()
 	local ZephyrExploit
 	local OrbCount
 	local SpeedMultiplier
 	local AutoRefill
+	local ServerSync
 
 	ZephyrExploit = vape.Categories.Blatant:CreateModule({
 		Name = 'ZephyrExploit',
@@ -13522,6 +13523,7 @@ run(function()
 							if store.equippedKit ~= 'wind_walker' then continue end
 							if not entitylib.isAlive then continue end
 							
+							-- Client-side visual
 							pcall(function()
 								local Event = game:GetService("ReplicatedStorage").rbxts_include.node_modules["@rbxts"].net.out._NetManaged.WindWalkerSpeedUpdate
 								firesignal(Event.OnClientEvent, {
@@ -13529,12 +13531,20 @@ run(function()
 									orbCount = OrbCount.Value
 								})
 							end)
+							
+							-- Server sync - actually use the ability to prevent flagging
+							if ServerSync.Enabled then
+								pcall(function()
+									-- Use ability on server to sync
+									bedwars.AbilityController:useAbility('wind_walker_jump')
+								end)
+							end
 						end
 					end)
 				end
 			end
 		end,
-		Tooltip = 'Infinite Zephyr orbs - uses firesignal (from competitor deobfuscation)'
+		Tooltip = 'Infinite Zephyr orbs with optional server sync to prevent flagging'
 	})
 	
 	OrbCount = ZephyrExploit:CreateSlider({
@@ -13559,6 +13569,13 @@ run(function()
 		Default = true,
 		Function = function() end,
 		Tooltip = 'Automatically refill orbs every second'
+	})
+	
+	ServerSync = ZephyrExploit:CreateToggle({
+		Name = 'Server Sync',
+		Default = false,
+		Function = function() end,
+		Tooltip = 'Use ability on server to prevent flagging (may not work)'
 	})
 end)
 
