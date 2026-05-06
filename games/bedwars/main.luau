@@ -5896,6 +5896,103 @@ run(function()
 		Darker = true
 	})
 end)
+
+-- TrapESP - Shows snap traps from other teams
+run(function()
+	local TrapESP
+	local Background
+	local Color
+	
+	local Reference = {}
+	local Folder = Instance.new('Folder')
+	Folder.Parent = vape.gui
+	
+	local function Added(v)
+		local billboard = Instance.new('BillboardGui')
+		billboard.Parent = Folder
+		billboard.Name = 'trap'
+		billboard.StudsOffsetWorldSpace = Vector3.new(0, 3, 0)
+		billboard.Size = UDim2.fromOffset(36, 36)
+		billboard.AlwaysOnTop = true
+		billboard.ClipsDescendants = false
+		billboard.Adornee = v
+		local blur = addBlur(billboard)
+		blur.Visible = Background.Enabled
+		local frame = Instance.new('Frame')
+		frame.Size = UDim2.fromScale(1, 1)
+		frame.BackgroundColor3 = Color3.fromHSV(Color.Hue, Color.Sat, Color.Value)
+		frame.BackgroundTransparency = 1 - (Background.Enabled and Color.Opacity or 0)
+		frame.Parent = billboard
+		local image = Instance.new('ImageLabel')
+		image.Size = UDim2.fromOffset(32, 32)
+		image.BackgroundTransparency = 1
+		image.Image = bedwars.getIcon({itemType = 'snap_trap'}, true)
+		image.Parent = frame
+		local layout = Instance.new('UIListLayout')
+		layout.FillDirection = Enum.FillDirection.Horizontal
+		layout.Padding = UDim.new(0, 4)
+		layout.VerticalAlignment = Enum.VerticalAlignment.Center
+		layout.HorizontalAlignment = Enum.HorizontalAlignment.Center
+		layout:GetPropertyChangedSignal('AbsoluteContentSize'):Connect(function()
+			billboard.Size = UDim2.fromOffset(math.max(layout.AbsoluteContentSize.X + 4, 36), 36)
+		end)
+		layout.Parent = frame
+		local corner = Instance.new('UICorner')
+		corner.CornerRadius = UDim.new(0, 4)
+		corner.Parent = frame
+		Reference[v] = billboard
+	end
+
+	TrapESP = vape.Categories.Render:CreateModule({
+		Name = 'Trap ESP',
+		Tooltip = 'Shows snap traps placed by enemy teams',
+		Function = function(callback)
+			if callback then
+				repeat task.wait() until store.matchState ~= 0 or not TrapESP.Enabled
+				if not TrapESP.Enabled then 
+					return
+				end
+
+				TrapESP:Clean(collectionService:GetInstanceAddedSignal('snap_trap'):Connect(Added))
+				TrapESP:Clean(collectionService:GetInstanceRemovedSignal('snap_trap'):Connect(function(v)
+					if Reference[v] then
+						Reference[v]:Destroy()
+						Reference[v] = nil
+					end
+				end))
+			else
+				table.clear(Reference)
+				Folder:ClearAllChildren()
+			end
+		end
+	})
+
+	Background = TrapESP:CreateToggle({
+		Name = 'Background',
+		Function = function(callback)
+			if Color and Color.Object then 
+				Color.Object.Visible = callback 
+			end
+			for _, v in Reference do
+				v.Frame.BackgroundTransparency = 1 - (callback and Color.Opacity or 0)
+				v.Blur.Visible = callback
+			end
+		end,
+		Default = true
+	})
+	Color = TrapESP:CreateColorSlider({
+		Name = 'Background Color',
+		DefaultValue = 0,
+		DefaultOpacity = 0.5,
+		Function = function(hue, sat, val, opacity)
+			for _, v in Reference do
+				v.Frame.BackgroundColor3 = Color3.fromHSV(hue, sat, val)
+				v.Frame.BackgroundTransparency = 1 - opacity
+			end
+		end,
+		Darker = true
+	})
+end)
 	
 run(function()
 	local AutoBalloon
@@ -6872,6 +6969,159 @@ run(function()
 			end
 		end,
 		Tooltip = 'Spawns and teleports a missile to a player\nnear your mouse.'
+	})
+end)
+
+-- Mouse TP - Teleports to mouse position using items/kits
+run(function()
+	local MouseTP
+	local Movement
+	local Mode
+
+	local rayParams = RaycastParams.new()
+	rayParams.RespectCanCollide = true
+	rayParams.FilterType = Enum.RaycastFilterType.Include
+
+	getgenv().MouseTPs = {
+		Items = function(position)
+			local item = getItem('telepearl') or getItem('fireball')
+			local localPosition = entitylib.character.RootPart.Position
+			if item then
+				if item.itemType == 'telepearl' then
+					local meta = bedwars.ProjectileMeta.telepearl
+					local calc = prediction.SolveTrajectory(localPosition, meta.launchVelocity, meta.gravitationalAcceleration, position, Vector3.zero, workspace.Gravity, 0, 0)
+					if calc then
+						position = calc
+					end
+
+					local shootPosition = (CFrame.new(localPosition, position) * CFrame.new(Vector3.new(-bedwars.BowConstantsTable.RelX, -bedwars.BowConstantsTable.RelY, -bedwars.BowConstantsTable.RelZ))).Position
+					switchItem(item.tool)
+					bedwars.Client:Get(remotes.FireProjectile):CallServerAsync(
+						item.tool, 
+						'telepearl', 
+						'telepearl', 
+						shootPosition, 
+						localPosition, 
+						CFrame.lookAt(localPosition, position).LookVector * meta.launchVelocity, 
+						httpService:GenerateGUID(true), 
+						{
+							drawDurationSeconds = 1, 
+							shotId = httpService:GenerateGUID(false)
+						}, 
+						workspace:GetServerTimeNow() - 0.045
+					):andThen(function(result)
+						if result then
+							bedwars.SoundManager:playSound('rbxassetid://6866223756')
+						end
+					end)
+					return true
+				elseif item.itemType == 'fireball' and (localPosition - Vector3.new(position.X, localPosition.Y, position.Z)).Magnitude <= 200 then
+					local root = entitylib.character.RootPart
+					local ray = workspace:Raycast(localPosition, Vector3.new(0, -1000, 0), rayParams)
+					if ray then
+						localPosition = ray.Position + Vector3.new(0, entitylib.character.HipHeight or 2, 0)
+						root.Velocity = Vector3.zero
+						root.CFrame = CFrame.new(localPosition)
+
+						MouseTP:Clean(vapeEvents.EntityDamageEvent.Event:Connect(function(damageTable)
+							if damageTable.entityInstance == lplr.Character and damageTable.fromEntity == lplr.Character and (not damageTable.knockbackMultiplier or not damageTable.knockbackMultiplier.disabled) then
+								local knockbackBoost = bedwars.KnockbackUtil.calculateKnockbackVelocity(Vector3.one, 1, {
+									vertical = 0,
+									horizontal = (damageTable.knockbackMultiplier and damageTable.knockbackMultiplier.horizontal or 1)
+								}).Magnitude * 1.1
+
+								if knockbackBoost >= 38 then
+									repeat
+										task.wait()
+									until (root.Position - position).Magnitude <= 1
+								end
+							end
+						end))
+
+						local shootPosition = (CFrame.new(localPosition, position) * CFrame.new(Vector3.new(-bedwars.BowConstantsTable.RelX, -bedwars.BowConstantsTable.RelY, -bedwars.BowConstantsTable.RelZ))).Position
+						switchItem(item.tool)
+						bedwars.Client:Get(remotes.FireProjectile):CallServerAsync(
+							item.tool, 
+							'fireball', 
+							'fireball', 
+							shootPosition, 
+							localPosition, 
+							Vector3.new(0, -68, 0), 
+							httpService:GenerateGUID(true), 
+							{
+								drawDurationSeconds = 1, 
+								shotId = httpService:GenerateGUID(false)
+							}, 
+							workspace:GetServerTimeNow() - 0.045
+						):andThen(function(result)
+							if result then
+								bedwars.SoundManager:playSound('rbxassetid://7192289445')
+							end
+						end)
+						task.wait(2.5)
+						return true
+					end
+				end
+			end
+			return false
+		end,
+		Kits = function(position)
+			-- Kit teleports can be added here
+			return false
+		end
+	}
+
+	MouseTP = vape.Categories.Utility:CreateModule({
+		Name = 'Mouse TP',
+		Tooltip = 'Teleports to mouse position using items (pearl/fireball)',
+		Function = function(callback)
+			if callback then
+				local position = nil
+				if Mode.Value == 'Mouse' then
+					rayParams.FilterDescendantsInstances = {workspace:WaitForChild('Map', 9e9)}
+					local ray = inputService:GetMouseLocation()
+					local camera = workspace.CurrentCamera
+					ray = camera:ScreenPointToRay(ray.X, ray.Y)
+					ray = workspace:Raycast(ray.Origin, ray.Direction * 10000, rayParams)
+					position = ray and ray.Position + Vector3.new(0, entitylib.character.HipHeight or 2, 0)
+				elseif Mode.Value == 'Player' then
+					local ent = entitylib.EntityMouse({
+						Range = math.huge,
+						Part = 'RootPart',
+						Players = true
+					})
+					position = ent and ent.RootPart.Position
+				end
+
+				if position then
+					if Movement.Value == 'All' then
+						if not getgenv().MouseTPs.Kits(position) and not getgenv().MouseTPs.Items(position) then
+							notif('MouseTP', 'Couldn\'t find an item or a kit to teleport with', 5)
+						end
+					elseif not getgenv().MouseTPs[Movement.Value](position) then
+						notif('MouseTP', 'Couldn\'t find '..Movement.Value:lower()..' to teleport with', 5)
+					end
+				else
+					notif('MouseTP', 'No position found.', 5)
+				end
+				if MouseTP.Enabled then
+					MouseTP:Toggle()
+				end
+			end
+		end
+	})
+
+	Mode = MouseTP:CreateDropdown({
+		Name = 'Mode',
+		List = {'Mouse', 'Player'},
+		Default = 'Mouse',
+		Tooltip = 'Where you\'re going to teleport to'
+	})
+	Movement = MouseTP:CreateDropdown({
+		Name = 'Movement',
+		List = {'All', 'Kits', 'Items'},
+		Default = 'Items',
+		Tooltip = 'All - Uses Kits & Items to teleport'
 	})
 end)
 	
@@ -13673,51 +13923,32 @@ run(function()
 	})
 end)
 
--- DamageBoost (from AlSploit - exact copy)
+-- DamageBoost (from CatV6 - improved version with knockback calculation)
 run(function()
 	local DamageBoost
-	local DamageBoostActive = false
+	local stack = 0
 
 	DamageBoost = vape.Categories.Blatant:CreateModule({
 		Name = 'DamageBoost',
+		Tooltip = 'Gives extra speed boost when damaged (uses real knockback calculation)',
 		Function = function(callback)
 			if callback then
 				DamageBoost:Clean(vapeEvents.EntityDamageEvent.Event:Connect(function(damageTable)
-					if not entitylib.isAlive then return end
-					if store.matchState == 0 then return end
-					if damageTable.entityInstance ~= lplr.Character then return end
-					if not damageTable.damage or damageTable.damage <= 4 then return end
+					if entitylib.isAlive and tick() > stack and damageTable.entityInstance == lplr.Character and not LongJump.Enabled then
+						local horizontal = (damageTable.knockbackMultiplier and damageTable.knockbackMultiplier.horizontal or 0)
+						knockbackSpeed = bedwars.KnockbackUtil.calculateKnockbackVelocity(Vector3.one, 1, {
+							vertical = 0,
+							horizontal = horizontal
+						}).Magnitude * (0.9 + lplr:GetNetworkPing())
 
-					DamageBoostActive = true
-					task.delay(0.6, function()
-						DamageBoostActive = false
-					end)
-				end))
-
-				DamageBoost:Clean(runService.Heartbeat:Connect(function(dt)
-					if not DamageBoostActive then return end
-					if not entitylib.isAlive then return end
-
-					local root = entitylib.character.RootPart
-					if not root or not isnetworkowner(root) then return end
-
-					local moveDirection = entitylib.character.Humanoid.MoveDirection
-					if moveDirection.Magnitude == 0 then return end
-
-					local speedPos = moveDirection * 20 * dt
-
-					local params = RaycastParams.new()
-					params.FilterDescendantsInstances = {collectionService:GetTagged('block')}
-					params.FilterType = Enum.RaycastFilterType.Include
-					local ray = workspace:Raycast(root.Position, speedPos, params)
-
-					if not ray then
-						root.CFrame = root.CFrame + speedPos
+						if knockbackSpeed then
+							stack = tick() + (knockbackSpeed / 45)
+							knockbackBoost = tick() + (horizontal / 3.5)
+						end
 					end
 				end))
 			end
-		end,
-		Tooltip = 'Boosts speed when taking damage'
+		end
 	})
 end)
 
