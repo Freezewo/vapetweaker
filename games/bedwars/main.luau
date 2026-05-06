@@ -3308,7 +3308,7 @@ run(function() --> by max
 	SwingRange = Killaura:CreateSlider({
 		Name = 'Swing range',
 		Min = 1,
-		Max = 22,
+		Max = 30,
 		Default = 22,
 		Function = function(val)
 			if RangeVisualiser then
@@ -3317,54 +3317,61 @@ run(function() --> by max
 		end,
 		Suffix = function(val)
 			return val == 1 and 'stud' or 'studs'
-		end
+		end,
+		Tooltip = 'IMBA: Increase for longer reach'
 	})
 	AttackRange = Killaura:CreateSlider({
 		Name = 'Attack range',
 		Min = 1,
-		Max = 22,
+		Max = 30,
 		Default = 22,
 		Suffix = function(val)
 			return val == 1 and 'stud' or 'studs'
-		end
+		end,
+		Tooltip = 'IMBA: Increase for longer reach'
 	})
 	ChargeTime = Killaura:CreateSlider({
 		Name = 'Swing time',
 		Min = 0,
 		Max = 0.5,
-		Default = 0.42,
-		Decimal = 100
+		Default = 0.25,
+		Decimal = 100,
+		Tooltip = 'IMBA: Lower = faster attacks (0.25 recommended)'
 	})
 	SyncHitTime = Killaura:CreateToggle({
 		Name = 'Sync hit time',
 		Darker = true,
-		Tooltip = 'Syncs your hitreg with the swing time'
+		Default = true,
+		Tooltip = 'Syncs your hitreg with the swing time (ENABLE FOR IMBA)'
 	})
 	AirChance = Killaura:CreateSlider({
 		Name = 'Air Hit Chance',
 		Min = 0,
 		Max = 100,
 		Default = 100,
-		Suffix = '%'
+		Suffix = '%',
+		Tooltip = '100% = always hit in air'
 	})
 	AngleSlider = Killaura:CreateSlider({
 		Name = 'Max angle',
 		Min = 1,
 		Max = 360,
-		Default = 360
+		Default = 360,
+		Tooltip = '360 = hit from any angle'
 	})
 	UpdateRate = Killaura:CreateSlider({
 		Name = 'Update rate',
 		Min = 1,
 		Max = 240,
-		Default = 120,
-		Suffix = 'hz'
+		Default = 180,
+		Suffix = 'hz',
+		Tooltip = 'IMBA: Higher = faster updates (180 recommended)'
 	})
 	Mode = Killaura:CreateDropdown({
 		Name = 'Attack Mode',
 		List = {'Single', 'Multi', 'Switch'},
-		Tooltip = 'Single - Attacks one person at a time\nMulti - Attack multiple people at once\nSwitch - Switch between targets',
-		Default = 'Switch',
+		Tooltip = 'IMBA: Multi = attack multiple at once for max damage',
+		Default = 'Multi',
 		Function = function(val)
 			pcall(function()
 				MaxTargets.Object.Visible = val ~= 'Single'
@@ -3374,12 +3381,15 @@ run(function() --> by max
 	MaxTargets = Killaura:CreateSlider({
 		Name = 'Max targets',
 		Min = 1,
-		Max = 5,
-		Default = 5
+		Max = 10,
+		Default = 5,
+		Tooltip = 'IMBA: Attack up to 10 targets at once'
 	})
 	Sort = Killaura:CreateDropdown({
 		Name = 'Target Mode',
-		List = methods
+		List = methods,
+		Default = 'Health',
+		Tooltip = 'Health = target lowest HP first'
 	})
 	Priority = Killaura:CreateDropdown({
 		Name = 'Target Priority',
@@ -3396,8 +3406,8 @@ run(function() --> by max
 	GUI = Killaura:CreateToggle({Name = 'GUI check'})
 	FastHits = Killaura:CreateToggle({
 		Name = 'Fast Hits',
-		Tooltip = 'Deals more damage quicker using projectiles',
-		Default = false,
+		Tooltip = 'IMBA: Deals more damage quicker using projectiles',
+		Default = true,
 		Function = function(call)
 			Legit.Object.Visible = call
 			FireRate.Object.Visible = call
