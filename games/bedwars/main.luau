@@ -3697,64 +3697,75 @@ run(function()
 		Function = function(callback)
 			if callback then
 				repeat
-					if entitylib.isAlive then
-						local shouldBlock = false
-						local nearbyEnemy = entitylib.EntityPosition({
-							Range = BlockRange.Value,
-							Players = true,
-							NPCs = true,
-							Wallcheck = false
-						})
-						
-						if nearbyEnemy then
-							if OnlyWhenAttacking.Enabled then
-								shouldBlock = Killaura and Killaura.Enabled
-							else
-								shouldBlock = true
-							end
-						end
-						
-						if shouldBlock and not currentlyBlocking then
-							-- Start blocking
-							local shield = getItem('wood_shield') or getItem('stone_shield') or getItem('iron_shield') or getItem('diamond_shield') or getItem('emerald_shield')
-							if shield then
-								if AutoSwitch.Enabled then
-									if BlockMode.Value == 'Hold' then
-										switchItem(shield.tool)
-										currentlyBlocking = true
-										
-										-- Hold right click
-										blockingConnection = runService.Heartbeat:Connect(function()
-											if shield.tool and shield.tool.Parent then
-												bedwars.Client:Get('RightClick'):SendToServer({
-													item = shield.tool
-												})
-											end
-										end)
-									elseif BlockMode.Value == 'Spam' then
-										task.spawn(function()
-											while AutoBlock.Enabled and shouldBlock do
-												switchItem(shield.tool)
-												bedwars.Client:Get('RightClick'):SendToServer({
-													item = shield.tool
-												})
-												task.wait(0.1)
-											end
-										end)
-										currentlyBlocking = true
-									end
+					pcall(function()
+						if entitylib.isAlive then
+							local shouldBlock = false
+							local nearbyEnemy = entitylib.EntityPosition({
+								Range = BlockRange.Value,
+								Players = true,
+								NPCs = true,
+								Wallcheck = false
+							})
+							
+							if nearbyEnemy then
+								if OnlyWhenAttacking.Enabled then
+									shouldBlock = Killaura and Killaura.Enabled
+								else
+									shouldBlock = true
 								end
 							end
-						elseif not shouldBlock and currentlyBlocking then
-							-- Stop blocking
-							currentlyBlocking = false
-							if blockingConnection then
-								blockingConnection:Disconnect()
-								blockingConnection = nil
+							
+							if shouldBlock and not currentlyBlocking then
+								-- Start blocking
+								local shield = getItem('wood_shield') or getItem('stone_shield') or getItem('iron_shield') or getItem('diamond_shield') or getItem('emerald_shield')
+								if shield then
+									if AutoSwitch.Enabled then
+										if BlockMode.Value == 'Hold' then
+											switchItem(shield.tool)
+											currentlyBlocking = true
+											
+											-- Hold right click
+											if blockingConnection then
+												blockingConnection:Disconnect()
+											end
+											blockingConnection = runService.Heartbeat:Connect(function()
+												pcall(function()
+													if shield.tool and shield.tool.Parent then
+														bedwars.Client:Get('RightClick'):SendToServer({
+															item = shield.tool
+														})
+													end
+												end)
+											end)
+										elseif BlockMode.Value == 'Spam' then
+											currentlyBlocking = true
+											task.spawn(function()
+												while AutoBlock.Enabled and shouldBlock and currentlyBlocking do
+													pcall(function()
+														if shield.tool and shield.tool.Parent then
+															switchItem(shield.tool)
+															bedwars.Client:Get('RightClick'):SendToServer({
+																item = shield.tool
+															})
+														end
+													end)
+													task.wait(0.1)
+												end
+											end)
+										end
+									end
+								end
+							elseif not shouldBlock and currentlyBlocking then
+								-- Stop blocking
+								currentlyBlocking = false
+								if blockingConnection then
+									blockingConnection:Disconnect()
+									blockingConnection = nil
+								end
 							end
 						end
-					end
-					task.wait(0.05)
+					end)
+					task.wait(0.1)
 				until not AutoBlock.Enabled
 			else
 				currentlyBlocking = false
