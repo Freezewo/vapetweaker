@@ -1,6 +1,10 @@
 # Local executor/cache folders
 vapetweaker/
 
+# Private/dev scripts (DO NOT PUSH)
+tools/
+crackedshitscripts/
+
 # Local profile/runtime files
 profiles/commit.txt
 profiles/gui.txt
