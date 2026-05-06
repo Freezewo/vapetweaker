@@ -13484,13 +13484,9 @@ run(function()
 	})
 end)
 
--- ZephyrExploit - WORKING VERSION with server sync
+-- ZephyrExploit - Infinite orbs (2 orbs, 1.15x speed)
 run(function()
 	local ZephyrExploit
-	local OrbCount
-	local SpeedMultiplier
-	local AutoRefill
-	local ServerSync
 
 	ZephyrExploit = vape.Categories.Blatant:CreateModule({
 		Name = 'ZephyrExploit',
@@ -13503,79 +13499,38 @@ run(function()
 						pcall(function()
 							local Event = game:GetService("ReplicatedStorage").rbxts_include.node_modules["@rbxts"].net.out._NetManaged.WindWalkerSpeedUpdate
 							firesignal(Event.OnClientEvent, {
-								multiplier = SpeedMultiplier.Value,
-								orbCount = OrbCount.Value
+								multiplier = 1.15,
+								orbCount = 2
 							})
 						end)
 						
 						if vape.Notifications.Enabled then
-							vape:CreateNotification('ZephyrExploit', string.format('Gave %d orbs!', OrbCount.Value), 2, 'info')
+							vape:CreateNotification('ZephyrExploit', 'Gave 2 orbs!', 2, 'info')
 						end
 					end
 				end)
 				
 				-- Auto refill loop
-				if AutoRefill.Enabled then
-					task.spawn(function()
-						while ZephyrExploit.Enabled do
-							task.wait(1)
-							if not ZephyrExploit.Enabled then break end
-							if store.equippedKit ~= 'wind_walker' then continue end
-							if not entitylib.isAlive then continue end
-							
-							-- Client-side visual
-							pcall(function()
-								local Event = game:GetService("ReplicatedStorage").rbxts_include.node_modules["@rbxts"].net.out._NetManaged.WindWalkerSpeedUpdate
-								firesignal(Event.OnClientEvent, {
-									multiplier = SpeedMultiplier.Value,
-									orbCount = OrbCount.Value
-								})
-							end)
-							
-							-- Server sync - actually use the ability to prevent flagging
-							if ServerSync.Enabled then
-								pcall(function()
-									-- Use ability on server to sync
-									bedwars.AbilityController:useAbility('wind_walker_jump')
-								end)
-							end
-						end
-					end)
-				end
+				task.spawn(function()
+					while ZephyrExploit.Enabled do
+						task.wait(1)
+						if not ZephyrExploit.Enabled then break end
+						if store.equippedKit ~= 'wind_walker' then continue end
+						if not entitylib.isAlive then continue end
+						
+						-- Client-side visual
+						pcall(function()
+							local Event = game:GetService("ReplicatedStorage").rbxts_include.node_modules["@rbxts"].net.out._NetManaged.WindWalkerSpeedUpdate
+							firesignal(Event.OnClientEvent, {
+								multiplier = 1.15,
+								orbCount = 2
+							})
+						end)
+					end
+				end)
 			end
 		end,
-		Tooltip = 'Infinite Zephyr orbs with optional server sync to prevent flagging'
-	})
-	
-	OrbCount = ZephyrExploit:CreateSlider({
-		Name = 'Orb Count',
-		Min = 1,
-		Max = 10,
-		Default = 2,
-		Function = function() end
-	})
-	
-	SpeedMultiplier = ZephyrExploit:CreateSlider({
-		Name = 'Speed Multiplier',
-		Min = 1,
-		Max = 2,
-		Default = 1.15,
-		Decimal = 2,
-		Function = function() end
-	})
-	
-	AutoRefill = ZephyrExploit:CreateToggle({
-		Name = 'Auto Refill',
-		Default = true,
-		Function = function() end,
-		Tooltip = 'Automatically refill orbs every second'
-	})
-	
-	ServerSync = ZephyrExploit:CreateToggle({
-		Name = 'Server Sync',
-		Default = false,
-		Function = function() end,
-		Tooltip = 'Use ability on server to prevent flagging (may not work)'
+		Tooltip = 'Infinite Zephyr orbs (2 orbs, 1.15x speed) - client-side visual'
 	})
 end)
 
