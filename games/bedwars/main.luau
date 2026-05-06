@@ -13536,6 +13536,31 @@ run(function()
 					if store.matchState == 0 then return end
 					if lplr.Character:FindFirstChildWhichIsA('ForceField') then return end
 
+					local isVoidWalker = (store.equippedKit == 'void_walker' or lplr:GetAttribute('PlayingAsKit') == 'void_walker')
+
+					if isVoidWalker and KitAntiLagback.Enabled then
+						task.spawn(function()
+							repeat
+								task.wait()
+								local root = lplr.Character and lplr.Character.PrimaryPart
+								if not root then break end
+								local LookVector = root.CFrame.LookVector
+								pcall(function()
+									bedwars.Client:Get('VoidWalker_ClientUsedWarpAbility'):SendToServer({
+										clientStartPosition = root.Position + LookVector * 10,
+										direction = LookVector,
+										clientDestinationPosition = root.Position + LookVector * 5
+									})
+								end)
+								task.wait(0.1)
+								pcall(function()
+									bedwars.AbilityController:useAbility('void_walker_rewind')
+								end)
+							until isnetworkowner(root)
+						end)
+						return
+					end
+
 					shared.AnticheatBypassing = true
 					Clone = createClone()
 					if not Clone then return end
@@ -13576,6 +13601,7 @@ run(function()
 				if Clone then
 					Clone:Destroy()
 					Clone = nil
+					shared.AnticheatBypassing = false
 				end
 				if OldMoveFunction and ControlModule then
 					ControlModule.moveFunction = OldMoveFunction
@@ -13583,5 +13609,11 @@ run(function()
 			end
 		end,
 		Tooltip = 'Bypasses anticheat lagbacks\\nusing clone method'
+	})
+
+	KitAntiLagback = AntiLagback:CreateToggle({
+		Name = 'KitAntiLagback',
+		Default = true,
+		Tooltip = 'Uses Void Walker rewind to bypass'
 	})
 end)
