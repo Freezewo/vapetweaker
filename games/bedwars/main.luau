@@ -13484,58 +13484,113 @@ run(function()
 	})
 end)
 
--- ZephyrExploit - Infinite Zephyr charges (no cooldown)
+-- ZephyrExploit - Dumper to find how abilities work
 run(function()
 	local ZephyrExploit
 	local DebugMode
+	local DumpMode
+	local hookedFunctions = {}
 
 	ZephyrExploit = vape.Categories.Blatant:CreateModule({
 		Name = 'ZephyrExploit',
 		Function = function(callback)
 			if callback then
-				-- Constantly remove cooldown
-				task.spawn(function()
-					while ZephyrExploit.Enabled do
-						task.wait(0.05)
-						if not ZephyrExploit.Enabled then break end
-						if store.equippedKit ~= 'wind_walker' then continue end
-						if not entitylib.isAlive then continue end
-						
-						-- Try multiple methods to remove cooldown
-						pcall(function()
-							if bedwars.CooldownController then
-								-- Set cooldown to 0 (ability ready)
-								bedwars.CooldownController:setOnCooldown('wind_walker_jump', 0, false)
-							end
-						end)
-						
-						-- Try to manipulate character attributes
-						pcall(function()
-							if lplr.Character then
-								-- Try common attribute names for cooldowns
-								local attrs = {'WindWalkerCooldown', 'wind_walker_cooldown', 'ZephyrCooldown', 'AbilityCooldown'}
-								for _, attr in attrs do
-									if lplr.Character:GetAttribute(attr) then
-										lplr.Character:SetAttribute(attr, 0)
+				if DumpMode.Enabled then
+					-- Hook CooldownController methods
+					task.spawn(function()
+						if bedwars.CooldownController then
+							vape:CreateNotification('Dump', 'Hooking CooldownController...', 3, 'info')
+							
+							-- Try to hook setOnCooldown
+							pcall(function()
+								local old = bedwars.CooldownController.setOnCooldown
+								bedwars.CooldownController.setOnCooldown = function(self, ability, time, ...)
+									if ability and tostring(ability):find('wind') then
+										vape:CreateNotification('Dump', string.format('setOnCooldown: %s, %s', tostring(ability), tostring(time)), 5, 'info')
+									end
+									return old(self, ability, time, ...)
+								end
+								table.insert(hookedFunctions, 'setOnCooldown')
+							end)
+							
+							-- Try to dump all methods
+							pcall(function()
+								for k, v in pairs(bedwars.CooldownController) do
+									if type(v) == 'function' and not hookedFunctions[k] then
+										vape:CreateNotification('Dump', 'CooldownController.'..tostring(k), 3, 'info')
 									end
 								end
-							end
-						end)
-					end
-				end)
-				
-				if DebugMode.Enabled then
-					vape:CreateNotification('Debug', 'ZephyrExploit enabled - removing cooldowns', 2, 'info')
+							end)
+						end
+						
+						-- Hook WindWalkerController methods
+						if bedwars.WindWalkerController then
+							vape:CreateNotification('Dump', 'Hooking WindWalkerController...', 3, 'info')
+							
+							pcall(function()
+								for k, v in pairs(bedwars.WindWalkerController) do
+									if type(v) == 'function' then
+										vape:CreateNotification('Dump', 'WindWalkerController.'..tostring(k), 3, 'info')
+										
+										-- Hook the function
+										local old = v
+										bedwars.WindWalkerController[k] = function(...)
+											vape:CreateNotification('Dump', 'Called: WindWalkerController.'..tostring(k), 3, 'info')
+											return old(...)
+										end
+									end
+								end
+							end)
+						end
+						
+						-- Hook AbilityController.useAbility
+						if bedwars.AbilityController then
+							pcall(function()
+								local old = bedwars.AbilityController.useAbility
+								bedwars.AbilityController.useAbility = function(self, ability, ...)
+									if ability and tostring(ability):find('wind') then
+										vape:CreateNotification('Dump', 'useAbility: '..tostring(ability), 5, 'info')
+									end
+									return old(self, ability, ...)
+								end
+							end)
+						end
+						
+						vape:CreateNotification('Dump', 'Hooks installed! Use ability to see calls', 5, 'info')
+					end)
+				else
+					-- Normal mode - try to remove cooldown
+					task.spawn(function()
+						while ZephyrExploit.Enabled do
+							task.wait(0.05)
+							if not ZephyrExploit.Enabled then break end
+							if store.equippedKit ~= 'wind_walker' then continue end
+							if not entitylib.isAlive then continue end
+							
+							pcall(function()
+								if bedwars.CooldownController then
+									bedwars.CooldownController:setOnCooldown('wind_walker_jump', 0, false)
+								end
+							end)
+						end
+					end)
 				end
 			end
 		end,
-		Tooltip = 'Removes Zephyr ability cooldown - spam ability without waiting'
+		Tooltip = 'Zephyr exploit - enable DumpMode to see how abilities work'
 	})
 	
 	DebugMode = ZephyrExploit:CreateToggle({
 		Name = 'Debug',
 		Default = false,
 		Function = function() end
+	})
+	
+	DumpMode = ZephyrExploit:CreateToggle({
+		Name = 'DumpMode',
+		Default = false,
+		Function = function() end,
+		Tooltip = 'Logs all ability/cooldown calls to find how it works'
 	})
 end)
 
