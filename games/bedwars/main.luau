@@ -13484,9 +13484,10 @@ run(function()
 	})
 end)
 
--- ZephyrExploit - Resets ability cooldown on kill
+-- ZephyrExploit - Auto use Zephyr ability on kill (bypasses cooldown)
 run(function()
 	local ZephyrExploit
+	local DebugMode
 
 	ZephyrExploit = vape.Categories.Blatant:CreateModule({
 		Name = 'ZephyrExploit',
@@ -13495,29 +13496,63 @@ run(function()
 				ZephyrExploit:Clean(vapeEvents.EntityDeathEvent.Event:Connect(function(deathTable)
 					if not entitylib.isAlive then return end
 					if store.matchState == 0 then return end
-					if lplr:GetAttribute('PlayingAsKit') ~= 'wind_walker' then return end
+					
+					local currentKit = lplr:GetAttribute('PlayingAsKit')
+					if DebugMode.Enabled then
+						vape:CreateNotification('Debug', 'Current Kit: '..(currentKit or 'nil'), 3, 'info')
+					end
+					
+					if currentKit ~= 'wind_walker' then return end
 
 					local killer = playersService:GetPlayerFromCharacter(deathTable.fromEntity)
 					local killed = playersService:GetPlayerFromCharacter(deathTable.entityInstance)
 
 					if killer and killed and killer == lplr and killed ~= lplr then
-						-- Reset Zephyr ability cooldown
+						if DebugMode.Enabled then
+							vape:CreateNotification('Debug', 'Kill detected! Trying exploit...', 3, 'info')
+						end
+						
+						-- Force use Zephyr ability (bypasses cooldown)
 						task.spawn(function()
-							pcall(function()
+							task.wait(0.05)
+							
+							-- Try to reset cooldown first
+							local cooldownSuccess = pcall(function()
 								if bedwars.CooldownController then
 									bedwars.CooldownController:setOnCooldown('wind_walker_jump', 0, false)
 								end
 							end)
+							
+							if DebugMode.Enabled then
+								vape:CreateNotification('Debug', 'Cooldown reset: '..(cooldownSuccess and 'OK' or 'FAIL'), 2, 'info')
+							end
+							
+							task.wait(0.05)
+							
+							-- Try to use ability
+							local abilitySuccess = pcall(function()
+								bedwars.AbilityController:useAbility('wind_walker_jump')
+							end)
+							
+							if DebugMode.Enabled then
+								vape:CreateNotification('Debug', 'Ability use: '..(abilitySuccess and 'OK' or 'FAIL'), 2, 'info')
+							end
+							
+							if not DebugMode.Enabled and vape.Notifications.Enabled then
+								vape:CreateNotification('ZephyrExploit', 'Ability Triggered! 💨', 2, 'info')
+							end
 						end)
-						
-						if vape.Notifications.Enabled then
-							vape:CreateNotification('ZephyrExploit', 'Cooldown Reset! 💨', 2, 'info')
-						end
 					end
 				end))
 			end
 		end,
-		Tooltip = 'Resets Zephyr ability cooldown on kill'
+		Tooltip = 'Auto uses Zephyr ability on kill (bypasses cooldown)'
+	})
+	
+	DebugMode = ZephyrExploit:CreateToggle({
+		Name = 'Debug',
+		Default = false,
+		Function = function() end
 	})
 end)
 
