@@ -13484,63 +13484,52 @@ run(function()
 	})
 end)
 
--- ZephyrExploit - Infinite Zephyr charges (auto refill cooldown)
+-- ZephyrExploit - Infinite Zephyr charges (no cooldown)
 run(function()
 	local ZephyrExploit
 	local DebugMode
-	local lastCooldown = 50
 
 	ZephyrExploit = vape.Categories.Blatant:CreateModule({
 		Name = 'ZephyrExploit',
 		Function = function(callback)
 			if callback then
-				-- Give 2 charges on enable
-				task.spawn(function()
-					task.wait(0.5)
-					if store.equippedKit == 'wind_walker' then
-						-- Try to spawn 2 orbs
-						for i = 1, 2 do
-							pcall(function()
-								if bedwars.WindWalkerController and bedwars.WindWalkerController.spawnOrb then
-									bedwars.WindWalkerController:spawnOrb()
-								end
-							end)
-							task.wait(0.1)
-						end
-						
-						if DebugMode.Enabled then
-							vape:CreateNotification('Debug', 'Spawned 2 orbs on enable', 2, 'info')
-						end
-					end
-				end)
-				
-				-- Auto refill cooldown loop
+				-- Constantly remove cooldown
 				task.spawn(function()
 					while ZephyrExploit.Enabled do
-						task.wait(0.1)
+						task.wait(0.05)
 						if not ZephyrExploit.Enabled then break end
 						if store.equippedKit ~= 'wind_walker' then continue end
 						if not entitylib.isAlive then continue end
 						
-						-- Try to keep cooldown at 50 (max)
+						-- Try multiple methods to remove cooldown
 						pcall(function()
-							-- Method 1: Reset cooldown to 0 (makes it available)
 							if bedwars.CooldownController then
+								-- Set cooldown to 0 (ability ready)
 								bedwars.CooldownController:setOnCooldown('wind_walker_jump', 0, false)
 							end
 						end)
 						
-						-- Method 2: Try to spawn orb if cooldown is low
+						-- Try to manipulate character attributes
 						pcall(function()
-							if bedwars.WindWalkerController and bedwars.WindWalkerController.spawnOrb then
-								bedwars.WindWalkerController:spawnOrb()
+							if lplr.Character then
+								-- Try common attribute names for cooldowns
+								local attrs = {'WindWalkerCooldown', 'wind_walker_cooldown', 'ZephyrCooldown', 'AbilityCooldown'}
+								for _, attr in attrs do
+									if lplr.Character:GetAttribute(attr) then
+										lplr.Character:SetAttribute(attr, 0)
+									end
+								end
 							end
 						end)
 					end
 				end)
+				
+				if DebugMode.Enabled then
+					vape:CreateNotification('Debug', 'ZephyrExploit enabled - removing cooldowns', 2, 'info')
+				end
 			end
 		end,
-		Tooltip = 'Infinite Zephyr charges - gives 2 charges on enable and auto refills cooldown'
+		Tooltip = 'Removes Zephyr ability cooldown - spam ability without waiting'
 	})
 	
 	DebugMode = ZephyrExploit:CreateToggle({
