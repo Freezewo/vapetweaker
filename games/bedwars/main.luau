@@ -13484,104 +13484,63 @@ run(function()
 	})
 end)
 
--- ZephyrExploit - Auto use Zephyr ability on kill (bypasses cooldown)
+-- ZephyrExploit - Infinite Zephyr charges (auto refill cooldown)
 run(function()
 	local ZephyrExploit
 	local DebugMode
+	local lastCooldown = 50
 
 	ZephyrExploit = vape.Categories.Blatant:CreateModule({
 		Name = 'ZephyrExploit',
 		Function = function(callback)
 			if callback then
-				ZephyrExploit:Clean(vapeEvents.EntityDeathEvent.Event:Connect(function(deathTable)
-					if DebugMode.Enabled then
-						vape:CreateNotification('Debug', 'Death event fired!', 2, 'info')
-					end
-					
-					if not entitylib.isAlive then 
-						if DebugMode.Enabled then
-							vape:CreateNotification('Debug', 'Not alive', 2, 'info')
-						end
-						return 
-					end
-					
-					if store.matchState == 0 then 
-						if DebugMode.Enabled then
-							vape:CreateNotification('Debug', 'Match not started', 2, 'info')
-						end
-						return 
-					end
-					
-					local currentKit = store.equippedKit
-					if DebugMode.Enabled then
-						vape:CreateNotification('Debug', 'Kit: '..(currentKit or 'nil'), 2, 'info')
-					end
-					
-					if currentKit ~= 'wind_walker' then return end
-
-					local killer = playersService:GetPlayerFromCharacter(deathTable.fromEntity)
-					local killed = playersService:GetPlayerFromCharacter(deathTable.entityInstance)
-					
-					if DebugMode.Enabled then
-						vape:CreateNotification('Debug', string.format('Killer:%s Killed:%s', 
-							killer and killer.Name or 'nil',
-							killed and killed.Name or 'nil'
-						), 3, 'info')
-					end
-
-					-- Trigger on any kill by local player (even if killed is nil/NPC)
-					if killer and killer == lplr then
-						if DebugMode.Enabled then
-							vape:CreateNotification('Debug', 'Valid kill! Trying exploit...', 3, 'info')
-						end
-						
-						-- Force use Zephyr ability (bypasses cooldown)
-						task.spawn(function()
-							task.wait(0.05)
-							
-							-- Method 1: Try setOnCooldown with 0
-							local method1 = pcall(function()
-								bedwars.CooldownController:setOnCooldown('wind_walker_jump', 0, false)
-							end)
-							
-							-- Method 2: Try WindWalkerController directly
-							local method2 = pcall(function()
+				-- Give 2 charges on enable
+				task.spawn(function()
+					task.wait(0.5)
+					if store.equippedKit == 'wind_walker' then
+						-- Try to spawn 2 orbs
+						for i = 1, 2 do
+							pcall(function()
 								if bedwars.WindWalkerController and bedwars.WindWalkerController.spawnOrb then
 									bedwars.WindWalkerController:spawnOrb()
 								end
 							end)
-							
-							-- Method 3: Try to use ability directly (force bypass)
-							local method3 = pcall(function()
-								bedwars.AbilityController:useAbility('wind_walker_jump')
-							end)
-							
-							-- Method 4: Try Client:Get for wind_walker ability
-							local method4 = pcall(function()
-								local remote = bedwars.Client:Get('WindWalker_ClientUsedAbility')
-								if remote then
-									remote:SendToServer()
-								end
-							end)
-							
-							if DebugMode.Enabled then
-								vape:CreateNotification('Debug', string.format('M1:%s M2:%s M3:%s M4:%s', 
-									method1 and 'OK' or 'X',
-									method2 and 'OK' or 'X', 
-									method3 and 'OK' or 'X',
-									method4 and 'OK' or 'X'
-								), 3, 'info')
+							task.wait(0.1)
+						end
+						
+						if DebugMode.Enabled then
+							vape:CreateNotification('Debug', 'Spawned 2 orbs on enable', 2, 'info')
+						end
+					end
+				end)
+				
+				-- Auto refill cooldown loop
+				task.spawn(function()
+					while ZephyrExploit.Enabled do
+						task.wait(0.1)
+						if not ZephyrExploit.Enabled then break end
+						if store.equippedKit ~= 'wind_walker' then continue end
+						if not entitylib.isAlive then continue end
+						
+						-- Try to keep cooldown at 50 (max)
+						pcall(function()
+							-- Method 1: Reset cooldown to 0 (makes it available)
+							if bedwars.CooldownController then
+								bedwars.CooldownController:setOnCooldown('wind_walker_jump', 0, false)
 							end
-							
-							if not DebugMode.Enabled and vape.Notifications.Enabled then
-								vape:CreateNotification('ZephyrExploit', 'Ability Triggered! 💨', 2, 'info')
+						end)
+						
+						-- Method 2: Try to spawn orb if cooldown is low
+						pcall(function()
+							if bedwars.WindWalkerController and bedwars.WindWalkerController.spawnOrb then
+								bedwars.WindWalkerController:spawnOrb()
 							end
 						end)
 					end
-				end))
+				end)
 			end
 		end,
-		Tooltip = 'Auto uses Zephyr ability on kill (bypasses cooldown)'
+		Tooltip = 'Infinite Zephyr charges - gives 2 charges on enable and auto refills cooldown'
 	})
 	
 	DebugMode = ZephyrExploit:CreateToggle({
