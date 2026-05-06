@@ -13484,6 +13484,43 @@ run(function()
 	})
 end)
 
+-- ZephyrExploit - Resets ability cooldown on kill
+run(function()
+	local ZephyrExploit
+
+	ZephyrExploit = vape.Categories.Blatant:CreateModule({
+		Name = 'ZephyrExploit',
+		Function = function(callback)
+			if callback then
+				ZephyrExploit:Clean(vapeEvents.EntityDeathEvent.Event:Connect(function(deathTable)
+					if not entitylib.isAlive then return end
+					if store.matchState == 0 then return end
+					if lplr:GetAttribute('PlayingAsKit') ~= 'wind_walker' then return end
+
+					local killer = playersService:GetPlayerFromCharacter(deathTable.fromEntity)
+					local killed = playersService:GetPlayerFromCharacter(deathTable.entityInstance)
+
+					if killer and killed and killer == lplr and killed ~= lplr then
+						-- Reset Zephyr ability cooldown
+						task.spawn(function()
+							pcall(function()
+								if bedwars.CooldownController then
+									bedwars.CooldownController:setOnCooldown('wind_walker_jump', 0, false)
+								end
+							end)
+						end)
+						
+						if vape.Notifications.Enabled then
+							vape:CreateNotification('ZephyrExploit', 'Cooldown Reset! 💨', 2, 'info')
+						end
+					end
+				end))
+			end
+		end,
+		Tooltip = 'Resets Zephyr ability cooldown on kill'
+	})
+end)
+
 -- AntiLagback (ported from AlSploit - Clone bypass method)
 run(function()
 	local AntiLagback
