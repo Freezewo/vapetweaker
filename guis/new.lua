@@ -8068,6 +8068,9 @@ function mainapi:UpdateGUI(hue, sat, val, default)
 
 	if not clickgui.Visible and not mainapi.Legit.Window.Visible then return end
 	local rainbow = mainapi.GUIColor.Rainbow and mainapi.RainbowMode.Value ~= 'Retro'
+	local baseColor = Color3.fromHSV(hue, sat, val)
+	local textColor = mainapi.GUIColor.Rainbow and Color3.new(0.19, 0.19, 0.19) or mainapi:TextColor(hue, sat, val)
+	local isGradient = rainbow and mainapi.RainbowMode.Value == 'Gradient'
 
 	for i, v in mainapi.Categories do
 		if i == 'Main' then
@@ -8103,10 +8106,6 @@ function mainapi:UpdateGUI(hue, sat, val, default)
 			end
 		end
 	end
-
-	local baseColor = Color3.fromHSV(hue, sat, val)
-	local textColor = mainapi.GUIColor.Rainbow and Color3.new(0.19, 0.19, 0.19) or mainapi:TextColor(hue, sat, val)
-	local isGradient = rainbow and mainapi.RainbowMode.Value == 'Gradient'
 
 	for _, button in mainapi.Modules do
 		if button.Enabled then
