@@ -13484,9 +13484,10 @@ run(function()
 	})
 end)
 
--- ZephyrExploit - Infinite orbs (2 orbs, 1.15x speed)
+-- ZephyrExploit - Infinite orbs with anticheat bypass attempts
 run(function()
 	local ZephyrExploit
+	local BypassMethod
 
 	ZephyrExploit = vape.Categories.Blatant:CreateModule({
 		Name = 'ZephyrExploit',
@@ -13496,41 +13497,76 @@ run(function()
 				task.spawn(function()
 					task.wait(0.5)
 					if store.equippedKit == 'wind_walker' then
+						local orbCount = 2
+						local multiplier = 1.15
+						
+						-- Apply bypass method
+						if BypassMethod.Value == 'NaN Values' then
+							-- Use NaN to confuse anticheat
+							multiplier = 0/0 -- NaN
+							orbCount = 0/0 -- NaN
+						elseif BypassMethod.Value == 'Negative Values' then
+							-- Negative values might bypass checks
+							multiplier = -1.15
+							orbCount = -2
+						elseif BypassMethod.Value == 'Huge Values' then
+							-- Huge values that wrap around
+							multiplier = math.huge
+							orbCount = math.huge
+						elseif BypassMethod.Value == 'Zero Values' then
+							-- Zero might bypass
+							multiplier = 0
+							orbCount = 0
+						elseif BypassMethod.Value == 'Normal' then
+							-- Normal values
+							multiplier = 1.15
+							orbCount = 2
+						end
+						
 						pcall(function()
 							local Event = game:GetService("ReplicatedStorage").rbxts_include.node_modules["@rbxts"].net.out._NetManaged.WindWalkerSpeedUpdate
 							firesignal(Event.OnClientEvent, {
-								multiplier = 1.15,
-								orbCount = 2
+								multiplier = multiplier,
+								orbCount = orbCount
 							})
 						end)
 						
 						if vape.Notifications.Enabled then
-							vape:CreateNotification('ZephyrExploit', 'Gave 2 orbs!', 2, 'info')
+							vape:CreateNotification('ZephyrExploit', 'Orbs given with '..BypassMethod.Value, 2, 'info')
 						end
 					end
 				end)
 				
-				-- Auto refill loop
-				task.spawn(function()
-					while ZephyrExploit.Enabled do
-						task.wait(1)
-						if not ZephyrExploit.Enabled then break end
-						if store.equippedKit ~= 'wind_walker' then continue end
-						if not entitylib.isAlive then continue end
-						
-						-- Client-side visual
-						pcall(function()
-							local Event = game:GetService("ReplicatedStorage").rbxts_include.node_modules["@rbxts"].net.out._NetManaged.WindWalkerSpeedUpdate
-							firesignal(Event.OnClientEvent, {
-								multiplier = 1.15,
-								orbCount = 2
-							})
-						end)
-					end
-				end)
+				-- Auto refill loop (only with normal values to avoid spam)
+				if BypassMethod.Value == 'Normal' then
+					task.spawn(function()
+						while ZephyrExploit.Enabled do
+							task.wait(1)
+							if not ZephyrExploit.Enabled then break end
+							if store.equippedKit ~= 'wind_walker' then continue end
+							if not entitylib.isAlive then continue end
+							
+							pcall(function()
+								local Event = game:GetService("ReplicatedStorage").rbxts_include.node_modules["@rbxts"].net.out._NetManaged.WindWalkerSpeedUpdate
+								firesignal(Event.OnClientEvent, {
+									multiplier = 1.15,
+									orbCount = 2
+								})
+							end)
+						end
+					end)
+				end
 			end
 		end,
-		Tooltip = 'Infinite Zephyr orbs (2 orbs, 1.15x speed) - client-side visual'
+		Tooltip = 'Infinite Zephyr orbs - try different bypass methods to avoid flagging'
+	})
+	
+	BypassMethod = ZephyrExploit:CreateDropdown({
+		Name = 'Bypass Method',
+		List = {'Normal', 'NaN Values', 'Negative Values', 'Huge Values', 'Zero Values'},
+		Default = 'Normal',
+		Function = function() end,
+		Tooltip = 'Try different methods to bypass anticheat'
 	})
 end)
 
