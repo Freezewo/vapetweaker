@@ -4283,7 +4283,7 @@ run(function()
 	local Targets
 	local Range
 	local List
-	local Delay, Tracers, TracerColor, TracerDuration, TracerGlow, MultiShot, SpeedMultiplier, IgnoreWalls
+	local Delay, Tracers, TracerColor, TracerDuration, TracerGlow, MultiShot, SpeedMultiplier, IgnoreWalls, KrystalDisabler
 	local rayCheck = RaycastParams.new()
 	rayCheck.FilterType = Enum.RaycastFilterType.Include
 	local projectileRemote = {InvokeServer = function(self, ...) end}
@@ -4421,6 +4421,14 @@ run(function()
 												
 												bedwars.ProjectileController:createLocalProjectile(meta, ammo, projectile, shootPosition, id, dir * projSpeed, {drawDurationSeconds = 1})
 												local res = projectileRemote:InvokeServer(item.tool, ammo, projectile, shootPosition, pos, dir * projSpeed, id, {drawDurationSeconds = 1, shotId = httpService:GenerateGUID(false)}, workspace:GetServerTimeNow() - 0.045)
+												
+												-- Krystal Disabler: Hide projectile from anticheat
+												if res and KrystalDisabler.Enabled then
+													pcall(function()
+														res.Parent = replicatedStorage
+													end)
+												end
+												
 												if not res then
 													FireDelays[item.itemType] = tick()
 												else
@@ -4542,6 +4550,11 @@ run(function()
 		Default = true,
 		Darker = true,
 		Tooltip = 'Adds glow effect to tracers'
+	})
+	KrystalDisabler = ProjectileAura:CreateToggle({
+		Name = 'Krystal Disabler',
+		Default = true,
+		Tooltip = 'Hides projectiles from anticheat (IMBA BYPASS)'
 	})
 end)
 	
