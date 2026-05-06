@@ -13494,8 +13494,23 @@ run(function()
 		Function = function(callback)
 			if callback then
 				ZephyrExploit:Clean(vapeEvents.EntityDeathEvent.Event:Connect(function(deathTable)
-					if not entitylib.isAlive then return end
-					if store.matchState == 0 then return end
+					if DebugMode.Enabled then
+						vape:CreateNotification('Debug', 'Death event fired!', 2, 'info')
+					end
+					
+					if not entitylib.isAlive then 
+						if DebugMode.Enabled then
+							vape:CreateNotification('Debug', 'Not alive', 2, 'info')
+						end
+						return 
+					end
+					
+					if store.matchState == 0 then 
+						if DebugMode.Enabled then
+							vape:CreateNotification('Debug', 'Match not started', 2, 'info')
+						end
+						return 
+					end
 					
 					local currentKit = store.equippedKit
 					if DebugMode.Enabled then
@@ -13506,10 +13521,17 @@ run(function()
 
 					local killer = playersService:GetPlayerFromCharacter(deathTable.fromEntity)
 					local killed = playersService:GetPlayerFromCharacter(deathTable.entityInstance)
+					
+					if DebugMode.Enabled then
+						vape:CreateNotification('Debug', string.format('Killer:%s Killed:%s', 
+							killer and killer.Name or 'nil',
+							killed and killed.Name or 'nil'
+						), 3, 'info')
+					end
 
 					if killer and killed and killer == lplr and killed ~= lplr then
 						if DebugMode.Enabled then
-							vape:CreateNotification('Debug', 'Kill detected!', 2, 'info')
+							vape:CreateNotification('Debug', 'Valid kill! Trying exploit...', 3, 'info')
 						end
 						
 						-- Force use Zephyr ability (bypasses cooldown)
