@@ -4073,6 +4073,42 @@ task.spawn(function()
 end)
 
 task.spawn(function()
+	local ZephyrExploit = BlatantTab:CreateToggle({
+		Name = "ZephyrExploit",
+
+		Function = function()
+			if AlSploitSettings.ZephyrExploit.Value == true then
+				AlSploitConnections["ZephyrExploitConnection"] = BedwarsFunctions.EntityDeathEventZap.On(function(deathTable)
+					if IsAlive(LocalPlayer) == true and GetMatchState() ~= 0 and EquippedKit == "wind_walker" then
+						local killer = Players:GetPlayerFromCharacter(deathTable.fromEntity)
+						local killed = Players:GetPlayerFromCharacter(deathTable.entityInstance)
+						
+						if killer and killed and killer == LocalPlayer and killed ~= LocalPlayer then
+							-- Reset Zephyr ability cooldown
+							pcall(function()
+								if BedwarsControllers.CooldownController then
+									BedwarsControllers.CooldownController:setOnCooldown("wind_walker_jump", 0, false)
+								end
+							end)
+							
+							CreateNotification(2, "Zephyr Cooldown Reset! 💨")
+						end
+					end
+				end)
+			end
+
+			if AlSploitSettings.ZephyrExploit.Value == false then
+				if AlSploitConnections["ZephyrExploitConnection"] then
+					AlSploitConnections["ZephyrExploitConnection"]:Disconnect()
+				end
+			end
+		end,
+
+		HoverText = "Resets Zephyr Ability On Kill 💨"
+	})
+end)
+
+task.spawn(function()
 	local InfiniteJump = BlatantTab:CreateToggle({
 		Name = "InfiniteJump",
 
