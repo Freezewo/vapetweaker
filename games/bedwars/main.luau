@@ -2032,30 +2032,37 @@ run(function()
 				bedwars.KnockbackUtil.applyKnockback = old
 			end
 		end,
-		Tooltip = 'Reduces knockback taken'
+		Tooltip = 'Reduces knockback taken (IMBA: 0% both for no knockback)'
 	})
 	Horizontal = Velocity:CreateSlider({
 		Name = 'Horizontal',
 		Min = 0,
 		Max = 100,
-		Default = 0,
-		Suffix = '%'
+		Default = 10,
+		Suffix = '%',
+		Tooltip = 'Lower = less horizontal knockback (0% = no knockback)'
 	})
 	Vertical = Velocity:CreateSlider({
 		Name = 'Vertical',
 		Min = 0,
 		Max = 100,
-		Default = 0,
-		Suffix = '%'
+		Default = 10,
+		Suffix = '%',
+		Tooltip = 'Lower = less vertical knockback (0% = no knockback)'
 	})
 	Chance = Velocity:CreateSlider({
 		Name = 'Chance',
 		Min = 0,
 		Max = 100,
 		Default = 100,
-		Suffix = '%'
+		Suffix = '%',
+		Tooltip = '100% = always reduce knockback'
 	})
-	TargetCheck = Velocity:CreateToggle({Name = 'Only when targeting'})
+	TargetCheck = Velocity:CreateToggle({
+		Name = 'Only when targeting',
+		Default = false,
+		Tooltip = 'Only reduce knockback when enemy is nearby'
+	})
 end)
 
 run(function()
@@ -3662,6 +3669,122 @@ run(function() --> by max
 	LegitAura = Killaura:CreateToggle({
 		Name = 'Swing only',
 		Tooltip = 'Only attacks while swinging manually'
+	})
+end)
+
+-- AutoBlock - Automatically blocks with shield when enemy nearby
+run(function()
+	local AutoBlock
+	local BlockRange
+	local BlockMode
+	local AutoSwitch
+	local OnlyWhenAttacking
+	local currentlyBlocking = false
+	local blockingConnection = nil
+	
+	AutoBlock = vape.Categories.Combat:CreateModule({
+		Name = 'AutoBlock',
+		Function = function(callback)
+			if callback then
+				repeat
+					if entitylib.isAlive then
+						local shouldBlock = false
+						local nearbyEnemy = entitylib.EntityPosition({
+							Range = BlockRange.Value,
+							Players = true,
+							NPCs = true,
+							Wallcheck = false
+						})
+						
+						if nearbyEnemy then
+							if OnlyWhenAttacking.Enabled then
+								shouldBlock = Killaura and Killaura.Enabled
+							else
+								shouldBlock = true
+							end
+						end
+						
+						if shouldBlock and not currentlyBlocking then
+							-- Start blocking
+							local shield = getItem('wood_shield') or getItem('stone_shield') or getItem('iron_shield') or getItem('diamond_shield') or getItem('emerald_shield')
+							if shield then
+								if AutoSwitch.Enabled then
+									if BlockMode.Value == 'Hold' then
+										switchItem(shield.tool)
+										currentlyBlocking = true
+										
+										-- Hold right click
+										blockingConnection = runService.Heartbeat:Connect(function()
+											if shield.tool and shield.tool.Parent then
+												bedwars.Client:Get('RightClick'):SendToServer({
+													item = shield.tool
+												})
+											end
+										end)
+									elseif BlockMode.Value == 'Spam' then
+										task.spawn(function()
+											while AutoBlock.Enabled and shouldBlock do
+												switchItem(shield.tool)
+												bedwars.Client:Get('RightClick'):SendToServer({
+													item = shield.tool
+												})
+												task.wait(0.1)
+											end
+										end)
+										currentlyBlocking = true
+									end
+								end
+							end
+						elseif not shouldBlock and currentlyBlocking then
+							-- Stop blocking
+							currentlyBlocking = false
+							if blockingConnection then
+								blockingConnection:Disconnect()
+								blockingConnection = nil
+							end
+						end
+					end
+					task.wait(0.05)
+				until not AutoBlock.Enabled
+			else
+				currentlyBlocking = false
+				if blockingConnection then
+					blockingConnection:Disconnect()
+					blockingConnection = nil
+				end
+			end
+		end,
+		Tooltip = 'Automatically blocks with shield when enemy is nearby'
+	})
+	
+	BlockRange = AutoBlock:CreateSlider({
+		Name = 'Block Range',
+		Min = 5,
+		Max = 30,
+		Default = 15,
+		Suffix = function(val)
+			return val == 1 and 'stud' or 'studs'
+		end,
+		Tooltip = 'Range to detect enemies and start blocking'
+	})
+	
+	BlockMode = AutoBlock:CreateDropdown({
+		Name = 'Block Mode',
+		List = {'Hold', 'Spam'},
+		Default = 'Hold',
+		Tooltip = 'Hold = continuous block, Spam = spam right click'
+	})
+	
+	AutoSwitch = AutoBlock:CreateToggle({
+		Name = 'Auto Switch',
+		Default = true,
+		Tooltip = 'Automatically switch to shield'
+	})
+	
+	OnlyWhenAttacking = AutoBlock:CreateToggle({
+		Name = 'Only When Attacking',
+		Default = false,
+		Tooltip = 'Only block when KillAura is enabled and attacking'
 	})
 end)
 	
