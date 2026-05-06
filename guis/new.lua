@@ -5048,69 +5048,102 @@ function mainapi:CreateSearch()
 		local legitVisible = searchbkg:FindFirstChild('Legit') and searchbkg.Legit.Visible
 		search.Size = UDim2.new(1, legitVisible and -50 or -10, 0, 37)
 		search.Position = UDim2.fromOffset(legitVisible and 50 or 10, 0)
-		if search.Text == '' then return end
+		if search.Text == '' then
+			searchbkg.Size = UDim2.fromOffset(240, 37)
+			children.CanvasSize = UDim2.new()
+			return
+		end
+
+		local searchLower = ({search.Text:lower():gsub(' ', '')})[1]
+		local resultCount = 0
 
 		for i, v in self.Modules do
-			local hasAlias = hasAlias(v.Alias, search.Text)
-			if i:lower():gsub(' ', ''):find(search.Text:lower():gsub(' ', '')) or hasAlias then
-				local button = v.Object:Clone()
-				for _, v in button.Indicators:GetChildren() do
-					if v:IsA('TextLabel') and v.Name ~= 'MATCHED' then
-						v.Visible = false
-					end
-				end
-				button.Size = UDim2.fromOffset(240, 40)
-				button.Bind:Destroy()
-				button.Indicators.MATCHED.Visible = hasAlias
-				button.MouseButton1Click:Connect(function()
-					v:Toggle()
-					v.Object.Parent.Parent.Visible = true
-					local frame = v.Object.Parent
-					local highlight = Instance.new('Frame')
-					highlight.Size = UDim2.fromScale(1, 1)
-					highlight.BackgroundColor3 = Color3.new(1, 1, 1)
-					highlight.BackgroundTransparency = 0.6
-					highlight.BorderSizePixel = 0
-					highlight.Parent = v.Object
-					tween:Tween(highlight, TweenInfo.new(0.5), {
-						BackgroundTransparency = 1
-					})
-					task.delay(0.5, highlight.Destroy, highlight)
-
-					frame.CanvasPosition = Vector2.new(0, (v.Object.LayoutOrder * 40) - (math.min(frame.CanvasSize.Y.Offset, 600) / 2))
-				end)
-
-				button.MouseButton2Click:Connect(function()
-					v.Object.Parent.Parent.Visible = true
-					local frame = v.Object.Parent
-					local highlight = Instance.new('Frame')
-					highlight.Size = UDim2.fromScale(1, 1)
-					highlight.BackgroundColor3 = Color3.new(1, 1, 1)
-					highlight.BackgroundTransparency = 0.6
-					highlight.BorderSizePixel = 0
-					highlight.Parent = v.Object
-					tween:Tween(highlight, TweenInfo.new(0.5), {
-						BackgroundTransparency = 1
-					})
-					task.delay(0.5, highlight.Destroy, highlight)
-
-					frame.CanvasPosition = Vector2.new(0, (v.Object.LayoutOrder * 40) - (math.min(frame.CanvasSize.Y.Offset, 600) / 2))
-				end)
-
-				button.Parent = children
-				task.spawn(function()
-					repeat
-						for _, v2 in {'Text', 'TextColor3', 'BackgroundColor3'} do
-							button[v2] = v.Object[v2]
+			pcall(function()
+				local isAlias = v.Alias and hasAlias(v.Alias, search.Text) or false
+				if ({i:lower():gsub(' ', '')})[1]:find(searchLower, 1, true) or isAlias then
+					local button = v.Object:Clone()
+					pcall(function()
+						for _, child in button:FindFirstChild('Indicators') and button.Indicators:GetChildren() or {} do
+							if child:IsA('TextLabel') and child.Name ~= 'MATCHED' then
+								child.Visible = false
+							end
 						end
-						button.UIGradient.Color = v.Object.UIGradient.Color
-						button.UIGradient.Enabled = v.Object.UIGradient.Enabled
-						button.Dots.Dots.ImageColor3 = v.Object.Dots.Dots.ImageColor3
-						task.wait()
-					until not button.Parent
-				end)
-			end
+					end)
+					button.Size = UDim2.fromOffset(240, 40)
+					pcall(function()
+						if button:FindFirstChild('Bind') then
+							button.Bind:Destroy()
+						end
+					end)
+					pcall(function()
+						local matchedLabel = button:FindFirstChild('Indicators') and button.Indicators:FindFirstChild('MATCHED')
+						if matchedLabel then
+							matchedLabel.Visible = isAlias
+						end
+					end)
+					button.MouseButton1Click:Connect(function()
+						v:Toggle()
+						pcall(function()
+							v.Object.Parent.Parent.Visible = true
+							local frame = v.Object.Parent
+							local highlight = Instance.new('Frame')
+							highlight.Size = UDim2.fromScale(1, 1)
+							highlight.BackgroundColor3 = Color3.new(1, 1, 1)
+							highlight.BackgroundTransparency = 0.6
+							highlight.BorderSizePixel = 0
+							highlight.Parent = v.Object
+							tween:Tween(highlight, TweenInfo.new(0.5), {
+								BackgroundTransparency = 1
+							})
+							task.delay(0.5, highlight.Destroy, highlight)
+							frame.CanvasPosition = Vector2.new(0, (v.Object.LayoutOrder * 40) - (math.min(frame.CanvasSize.Y.Offset, 600) / 2))
+						end)
+					end)
+
+					button.MouseButton2Click:Connect(function()
+						pcall(function()
+							v.Object.Parent.Parent.Visible = true
+							local frame = v.Object.Parent
+							local highlight = Instance.new('Frame')
+							highlight.Size = UDim2.fromScale(1, 1)
+							highlight.BackgroundColor3 = Color3.new(1, 1, 1)
+							highlight.BackgroundTransparency = 0.6
+							highlight.BorderSizePixel = 0
+							highlight.Parent = v.Object
+							tween:Tween(highlight, TweenInfo.new(0.5), {
+								BackgroundTransparency = 1
+							})
+							task.delay(0.5, highlight.Destroy, highlight)
+							frame.CanvasPosition = Vector2.new(0, (v.Object.LayoutOrder * 40) - (math.min(frame.CanvasSize.Y.Offset, 600) / 2))
+						end)
+					end)
+
+					button.Parent = children
+					resultCount = resultCount + 1
+					task.spawn(function()
+						repeat
+							pcall(function()
+								for _, v2 in {'Text', 'TextColor3', 'BackgroundColor3'} do
+									button[v2] = v.Object[v2]
+								end
+								if button:FindFirstChild('UIGradient') and v.Object:FindFirstChild('UIGradient') then
+									button.UIGradient.Color = v.Object.UIGradient.Color
+									button.UIGradient.Enabled = v.Object.UIGradient.Enabled
+								end
+								if button:FindFirstChild('Dots') and button.Dots:FindFirstChild('Dots') then
+									button.Dots.Dots.ImageColor3 = v.Object.Dots.Dots.ImageColor3
+								end
+							end)
+							task.wait()
+						until not button.Parent
+					end)
+				end
+			end)
 		end
+
+		local contentHeight = resultCount * 40
+		children.CanvasSize = UDim2.fromOffset(0, contentHeight / scale.Scale)
+		searchbkg.Size = UDim2.fromOffset(240, math.min(37 + contentHeight / scale.Scale, 437))
 	end)
 	windowlist:GetPropertyChangedSignal('AbsoluteContentSize'):Connect(function()
 		if self.ThreadFix then
@@ -6830,14 +6863,20 @@ mainapi:Clean(gui:GetPropertyChangedSignal('AbsoluteSize'):Connect(function()
 	end
 end))
 
+local scaleDebounce = false
 mainapi:Clean(scale:GetPropertyChangedSignal('Scale'):Connect(function()
 	scaledgui.Size = UDim2.fromScale(1 / scale.Scale, 1 / scale.Scale)
-	for _, v in scaledgui:GetDescendants() do
-		if v:IsA('GuiObject') and v.Visible then
-			v.Visible = false
-			v.Visible = true
+	if scaleDebounce then return end
+	scaleDebounce = true
+	task.delay(0.1, function()
+		scaleDebounce = false
+		for _, v in scaledgui:GetDescendants() do
+			if v:IsA('GuiObject') and v.Visible then
+				v.Visible = false
+				v.Visible = true
+			end
 		end
-	end
+	end)
 end))
 
 mainapi:Clean(clickgui:GetPropertyChangedSignal('Visible'):Connect(function()
@@ -7847,8 +7886,25 @@ targetinfo = {
 }
 mainapi.Libraries.targetinfo = targetinfo
 
+local textGUIDebounce = false
 function mainapi:UpdateTextGUI(afterload)
 	if not afterload and not mainapi.Loaded then return end
+	if textGUIDebounce and not afterload then
+		textGUIDebounce = 'pending'
+		return
+	end
+	textGUIDebounce = true
+	if not afterload then
+		task.delay(0.05, function()
+			local wasPending = textGUIDebounce == 'pending'
+			textGUIDebounce = false
+			if wasPending then
+				mainapi:UpdateTextGUI()
+			end
+		end)
+	else
+		textGUIDebounce = false
+	end
 	if textgui.Button.Enabled then
 		local right = textgui.Children.AbsolutePosition.X > (gui.AbsoluteSize.X / 2)
 		VapeLogo.Visible = textguiwatermark.Enabled
@@ -7994,13 +8050,18 @@ function mainapi:UpdateGUI(hue, sat, val, default)
 		VapeLabelCustom.TextColor3 = textguicolorcustomtoggle.Enabled and Color3.fromHSV(textguicolorcustom.Hue, textguicolorcustom.Sat, textguicolorcustom.Value) or VapeLogoGradient.Color.Keypoints[2].Value
 
 		local customcolor = textguicolordrop.Value == 'Custom color' and Color3.fromHSV(textguicolor.Hue, textguicolor.Sat, textguicolor.Value) or nil
+		local fallbackColor = not customcolor and not mainapi.GUIColor.Rainbow and VapeLogoGradient.Color.Keypoints[2].Value or nil
+		local isRainbow = mainapi.GUIColor.Rainbow
+		local useGradient = textguigradient
+		local useTint = textguibackgroundtint.Enabled
 		for i, v in VapeLabels do
-			v.Text.TextColor3 = customcolor or (mainapi.GUIColor.Rainbow and Color3.fromHSV(mainapi:Color((hue - ((textguigradient and i + 2 or i) * 0.025)) % 1)) or VapeLogoGradient.Color.Keypoints[2].Value)
+			local labelColor = customcolor or fallbackColor or Color3.fromHSV(mainapi:Color((hue - ((useGradient and i + 2 or i) * 0.025)) % 1))
+			v.Text.TextColor3 = labelColor
 			if v.Color then
-				v.Color.BackgroundColor3 = v.Text.TextColor3
+				v.Color.BackgroundColor3 = labelColor
 			end
-			if textguibackgroundtint.Enabled and v.Background then
-				v.Background.BackgroundColor3 = color.Dark(v.Text.TextColor3, 0.75)
+			if useTint and v.Background then
+				v.Background.BackgroundColor3 = color.Dark(labelColor, 0.75)
 			end
 		end
 	end
@@ -8010,18 +8071,19 @@ function mainapi:UpdateGUI(hue, sat, val, default)
 
 	for i, v in mainapi.Categories do
 		if i == 'Main' then
-			v.Object.VapeLogo.V4Logo.ImageColor3 = Color3.fromHSV(hue, sat, val)
+			v.Object.VapeLogo.V4Logo.ImageColor3 = baseColor
 			for _, button in v.Buttons do
 				if button.Enabled then
-					button.Object.TextColor3 = rainbow and Color3.fromHSV(mainapi:Color((hue - (button.Index * 0.025)) % 1)) or Color3.fromHSV(hue, sat, val)
+					local btnColor = rainbow and Color3.fromHSV(mainapi:Color((hue - (button.Index * 0.025)) % 1)) or baseColor
+					button.Object.TextColor3 = btnColor
 					if button.Icon then
-						button.Icon.ImageColor3 = button.Object.TextColor3
+						button.Icon.ImageColor3 = btnColor
 					end
 				end
 			end
 		end
 
-		if v.Options then
+		if v.Options and v.Object and v.Object.Visible then
 			for _, option in v.Options do
 				if option.Color then
 					option:Color(hue, sat, val, rainbow)
@@ -8030,43 +8092,58 @@ function mainapi:UpdateGUI(hue, sat, val, default)
 		end
 
 		if v.Type == 'CategoryList' then
-			v.Object.Children.Add.AddButton.ImageColor3 = rainbow and Color3.fromHSV(mainapi:Color(hue % 1)) or Color3.fromHSV(hue, sat, val)
+			local catColor = rainbow and Color3.fromHSV(mainapi:Color(hue % 1)) or baseColor
+			v.Object.Children.Add.AddButton.ImageColor3 = catColor
 			if v.Selected then
-				v.Selected.BackgroundColor3 = rainbow and Color3.fromHSV(mainapi:Color(hue % 1)) or Color3.fromHSV(hue, sat, val)
-				v.Selected.Title.TextColor3 = mainapi.GUIColor.Rainbow and Color3.new(0.19, 0.19, 0.19) or mainapi:TextColor(hue, sat, val)
-				v.Selected.Dots.Dots.ImageColor3 = v.Selected.Title.TextColor3
-				v.Selected.Bind.Icon.ImageColor3 = v.Selected.Title.TextColor3
-				v.Selected.Bind.TextLabel.TextColor3 = v.Selected.Title.TextColor3
+				v.Selected.BackgroundColor3 = catColor
+				v.Selected.Title.TextColor3 = textColor
+				v.Selected.Dots.Dots.ImageColor3 = textColor
+				v.Selected.Bind.Icon.ImageColor3 = textColor
+				v.Selected.Bind.TextLabel.TextColor3 = textColor
 			end
 		end
 	end
 
+	local baseColor = Color3.fromHSV(hue, sat, val)
+	local textColor = mainapi.GUIColor.Rainbow and Color3.new(0.19, 0.19, 0.19) or mainapi:TextColor(hue, sat, val)
+	local isGradient = rainbow and mainapi.RainbowMode.Value == 'Gradient'
+
 	for _, button in mainapi.Modules do
 		if button.Enabled then
-			button.Object.BackgroundColor3 = rainbow and Color3.fromHSV(mainapi:Color((hue - (button.Index * 0.025)) % 1)) or Color3.fromHSV(hue, sat, val)
-			button.Object.TextColor3 = mainapi.GUIColor.Rainbow and Color3.new(0.19, 0.19, 0.19) or mainapi:TextColor(hue, sat, val)
-			button.Object.UIGradient.Enabled = rainbow and mainapi.RainbowMode.Value == 'Gradient'
-			if button.Object.UIGradient.Enabled then
+			local btnColor = rainbow and Color3.fromHSV(mainapi:Color((hue - (button.Index * 0.025)) % 1)) or baseColor
+			button.Object.BackgroundColor3 = btnColor
+			button.Object.TextColor3 = textColor
+			button.Object.UIGradient.Enabled = isGradient
+			if isGradient then
 				button.Object.BackgroundColor3 = Color3.new(1, 1, 1)
 				button.Object.UIGradient.Color = ColorSequence.new({
-					ColorSequenceKeypoint.new(0, Color3.fromHSV(mainapi:Color((hue - (button.Index * 0.025)) % 1))),
+					ColorSequenceKeypoint.new(0, btnColor),
 					ColorSequenceKeypoint.new(1, Color3.fromHSV(mainapi:Color((hue - ((button.Index + 1) * 0.025)) % 1)))
 				})
 			end
-			button.Object.Bind.Icon.ImageColor3 = button.Object.TextColor3
-			button.Object.Bind.TextLabel.TextColor3 = button.Object.TextColor3
-			button.Object.Dots.Dots.ImageColor3 = button.Object.TextColor3
+			button.Object.Bind.Icon.ImageColor3 = textColor
+			button.Object.Bind.TextLabel.TextColor3 = textColor
+			button.Object.Dots.Dots.ImageColor3 = textColor
 		end
 
-		for _, v in button.Tags do
-			v.BackgroundColor3 = rainbow and Color3.fromHSV(mainapi:Color((hue - (button.Index * 0.025)) % 1)) or button.Enabled and Color3.new(1, 1, 1) or Color3.fromHSV(hue, sat, val)
-			v.BackgroundTransparency = (rainbow or not button.Enabled) and 0 or 0.85
-			v:FindFirstChild('Text').TextColor3 = mainapi.GUIColor.Rainbow and Color3.new(0.19, 0.19, 0.19) or mainapi:TextColor(hue, sat, val)
+		if #button.Tags > 0 then
+			local tagColor = rainbow and Color3.fromHSV(mainapi:Color((hue - (button.Index * 0.025)) % 1)) or button.Enabled and Color3.new(1, 1, 1) or baseColor
+			local tagTransp = (rainbow or not button.Enabled) and 0 or 0.85
+			for _, v in button.Tags do
+				v.BackgroundColor3 = tagColor
+				v.BackgroundTransparency = tagTransp
+				local textChild = v:FindFirstChild('Text')
+				if textChild then
+					textChild.TextColor3 = textColor
+				end
+			end
 		end
 
-		for _, option in button.Options do
-			if option.Color then
-				option:Color(hue, sat, val, rainbow)
+		if button.Children and button.Children.Visible then
+			for _, option in button.Options do
+				if option.Color then
+					option:Color(hue, sat, val, rainbow)
+				end
 			end
 		end
 	end
@@ -8074,17 +8151,17 @@ function mainapi:UpdateGUI(hue, sat, val, default)
 	for i, v in mainapi.Overlays.Toggles do
 		if v.Enabled then
 			tween:Cancel(v.Object.Knob)
-			v.Object.Knob.BackgroundColor3 = rainbow and Color3.fromHSV(mainapi:Color((hue - (i * 0.075)) % 1)) or Color3.fromHSV(hue, sat, val)
+			v.Object.Knob.BackgroundColor3 = rainbow and Color3.fromHSV(mainapi:Color((hue - (i * 0.075)) % 1)) or baseColor
 		end
 	end
 
 	if mainapi.Legit.Icon then
-		mainapi.Legit.Icon.ImageColor3 = Color3.fromHSV(hue, sat, val)
+		mainapi.Legit.Icon.ImageColor3 = baseColor
 	end
 
 	if mainapi.PublicConfigs.Window then
 		for _, v in mainapi.PublicConfigs.Backgrounds do
-			v.BackgroundColor3 = Color3.fromHSV(hue, sat, val)
+			v.BackgroundColor3 = baseColor
 		end
 	end
 
@@ -8092,12 +8169,14 @@ function mainapi:UpdateGUI(hue, sat, val, default)
 		for _, v in mainapi.Legit.Modules do
 			if v.Enabled then
 				tween:Cancel(v.Object.Knob)
-				v.Object.Knob.BackgroundColor3 = Color3.fromHSV(hue, sat, val)
+				v.Object.Knob.BackgroundColor3 = baseColor
 			end
 
-			for _, option in v.Options do
-				if option.Color then
-					option:Color(hue, sat, val, rainbow)
+			if v.Children and v.Children.Visible then
+				for _, option in v.Options do
+					if option.Color then
+						option:Color(hue, sat, val, rainbow)
+					end
 				end
 			end
 		end
