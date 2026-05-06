@@ -13497,7 +13497,7 @@ run(function()
 					if not entitylib.isAlive then return end
 					if store.matchState == 0 then return end
 					
-					local currentKit = lplr:GetAttribute('PlayingAsKit')
+					local currentKit = store.equippedKit
 					if DebugMode.Enabled then
 						vape:CreateNotification('Debug', 'Current Kit: '..(currentKit or 'nil'), 3, 'info')
 					end
