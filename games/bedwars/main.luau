@@ -303,6 +303,7 @@ local function getShieldAttribute(char)
 end
 getgenv().getShieldAttribute = getShieldAttribute
 
+local knockbackSpeed, knockbackBoost = 0, tick()
 local function getSpeed()
 	local multi, increase, modifiers = 0, true, bedwars.SprintController:getMovementStatusModifier():getModifiers()
 
@@ -322,7 +323,7 @@ local function getSpeed()
 		multi += 0.16 + (0.02 * math.round(multi))
 	end
 
-	return 20 * (multi + 1)
+	return (20 + (knockbackBoost > tick() and knockbackSpeed or 0)) * (multi + 1)
 end
 getgenv().getShieldAttribute = getShieldAttribute
 
@@ -4430,7 +4431,7 @@ run(function()
 	local Delay, Tracers, TracerColor, TracerDuration, TracerGlow, MultiShot, SpeedMultiplier, IgnoreWalls, KrystalDisabler
 	local rayCheck = RaycastParams.new()
 	rayCheck.FilterType = Enum.RaycastFilterType.Include
-	local projectileRemote = {InvokeServer = function(self, ...) end}
+	local projectileRemote
 	local FireDelays = {}
 	task.spawn(function()
 		repeat task.wait() until bedwars.Client and bedwars.Client.Get
@@ -4467,6 +4468,9 @@ run(function()
 		Name = 'Projectile Aura',
 		Function = function(callback)
 			if callback then
+				-- Wait for projectileRemote to initialize
+				repeat task.wait() until projectileRemote
+				
 				repeat
 					if (workspace:GetServerTimeNow() - bedwars.SwordController.lastAttack) > 0.5 and not LongJump.Enabled then
 						local ent = entitylib.EntityPosition({
