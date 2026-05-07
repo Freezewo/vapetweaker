@@ -4433,6 +4433,7 @@ run(function()
 	local projectileRemote = {InvokeServer = function(self, ...) end}
 	local FireDelays = {}
 	task.spawn(function()
+		repeat task.wait() until bedwars.Client and bedwars.Client.Get
 		projectileRemote = bedwars.Client:Get(remotes.FireProjectile).instance
 	end)
 	
@@ -4566,7 +4567,8 @@ run(function()
 													end)
 												end
 												
-												bedwars.ProjectileController:createLocalProjectile(meta, ammo, projectile, shootPosition, id, dir * projSpeed, {drawDurationSeconds = 1})
+												-- Don't create local projectile, let server handle it
+												-- bedwars.ProjectileController:createLocalProjectile(meta, ammo, projectile, shootPosition, id, dir * projSpeed, {drawDurationSeconds = 1})
 												local res = projectileRemote:InvokeServer(item.tool, ammo, projectile, shootPosition, pos, dir * projSpeed, id, {drawDurationSeconds = 1, shotId = httpService:GenerateGUID(false)}, workspace:GetServerTimeNow() - 0.045)
 												
 												-- Krystal Disabler: Hide projectile from anticheat
