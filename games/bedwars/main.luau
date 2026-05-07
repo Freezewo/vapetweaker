@@ -4484,11 +4484,10 @@ run(function()
 								if (FireDelays[item.itemType] or 0) < tick() then
 									rayCheck.FilterDescendantsInstances = {workspace.Map}
 									local meta = bedwars.ProjectileMeta[projectile]
-									-- Ping compensation + speed multiplier
-									local pingCompensation = (1 - lplr:GetNetworkPing())
-									local projSpeed = meta.launchVelocity * SpeedMultiplier.Value * pingCompensation
+									-- Use their working formula: ping compensation inside, velocity only X/Z
+									local projSpeed = meta.launchVelocity * SpeedMultiplier.Value
 									local gravity = meta.gravitationalAcceleration or 196.2
-									local calc = prediction.SolveTrajectory(pos, projSpeed, gravity, ent.RootPart.Position, ent.RootPart.Velocity, workspace.Gravity, ent.HipHeight, ent.Jumping and 42.6 or nil, rayCheck)
+									local calc = prediction.SolveTrajectory(pos, (projSpeed * (1 - lplr:GetNetworkPing())), gravity, ent.RootPart.Position, ent.RootPart.Velocity * Vector3.new(1, 0, 1), workspace.Gravity, ent.HipHeight, ent.Jumping and 42.6 or nil, rayCheck)
 									if calc then
 										targetinfo.Targets[ent] = tick() + 1
 										local switched = switchItem(item.tool)
@@ -4500,11 +4499,10 @@ run(function()
 												local dir, id = CFrame.lookAt(pos, calc).LookVector, httpService:GenerateGUID(true)
 												local shootPosition = (CFrame.new(pos, calc) * CFrame.new(Vector3.new(-bedwars.BowConstantsTable.RelX, -bedwars.BowConstantsTable.RelY, -bedwars.BowConstantsTable.RelZ))).Position
 												
-												-- Spread shots slightly for multishot
+												-- Spread shots slightly for multishot (FIXED)
 												if shotCount > 1 then
 													local spreadAngle = math.rad((shotIndex - (shotCount + 1) / 2) * 5)
-													local spreadDir = CFrame.Angles(0, spreadAngle, 0) * dir
-													dir = spreadDir
+													dir = (CFrame.Angles(0, spreadAngle, 0) * CFrame.new(dir)).Position.Unit
 												end
 												
 												-- Create tracer if enabled
