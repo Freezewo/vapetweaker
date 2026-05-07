@@ -4484,9 +4484,10 @@ run(function()
 								if (FireDelays[item.itemType] or 0) < tick() then
 									rayCheck.FilterDescendantsInstances = {workspace.Map}
 									local meta = bedwars.ProjectileMeta[projectile]
-									-- Use their working formula: ping compensation inside, velocity only X/Z
-									local projSpeed = meta.launchVelocity * SpeedMultiplier.Value
+									-- FIXED: Apply ping compensation BEFORE speed multiplier
+									local projSpeed = meta.launchVelocity
 									local gravity = meta.gravitationalAcceleration or 196.2
+									-- Use CatV6 formula: ping compensation inside SolveTrajectory
 									local calc = prediction.SolveTrajectory(pos, (projSpeed * (1 - lplr:GetNetworkPing())), gravity, ent.RootPart.Position, ent.RootPart.Velocity * Vector3.new(1, 0, 1), workspace.Gravity, ent.HipHeight, ent.Jumping and 42.6 or nil, rayCheck)
 									if calc then
 										targetinfo.Targets[ent] = tick() + 1
@@ -4495,85 +4496,86 @@ run(function()
 										-- MultiShot: shoot multiple projectiles
 										local shotCount = MultiShot.Enabled and MultiShot.Value or 1
 										for shotIndex = 1, shotCount do
+											local dir = CFrame.lookAt(pos, calc).LookVector
+											local id = httpService:GenerateGUID(true)
+											local shootPosition = (CFrame.new(pos, calc) * CFrame.new(Vector3.new(-bedwars.BowConstantsTable.RelX, -bedwars.BowConstantsTable.RelY, -bedwars.BowConstantsTable.RelZ))).Position
+											
+											-- FIXED: Proper multishot spread calculation
+											if shotCount > 1 then
+												local spreadAngle = math.rad((shotIndex - (shotCount + 1) / 2) * 5)
+												local spreadCFrame = CFrame.Angles(0, spreadAngle, 0)
+												dir = (spreadCFrame * CFrame.new(0, 0, -1)).LookVector
+											end
+											
+											-- Apply speed multiplier to final velocity
+											local finalVelocity = dir * (projSpeed * SpeedMultiplier.Value)
+											
+											-- Create tracer if enabled (non-blocking)
+											if Tracers.Enabled then
+												task.spawn(function()
+													local distance = (shootPosition - calc).Magnitude
+													local tracer = Instance.new('Part')
+													tracer.Name = 'ProjectileTracer'
+													tracer.Anchored = true
+													tracer.CanCollide = false
+													tracer.Size = Vector3.new(0.15, 0.15, distance)
+													tracer.CFrame = CFrame.lookAt(shootPosition, calc) * CFrame.new(0, 0, -distance / 2)
+													tracer.Material = Enum.Material.Neon
+													tracer.Color = Color3.fromHSV(TracerColor.Hue, TracerColor.Sat, TracerColor.Value)
+													tracer.Transparency = 0.2
+													tracer.Parent = workspace
+													
+													-- Add glow effect
+													if TracerGlow.Enabled then
+														local pointLight = Instance.new('PointLight')
+														pointLight.Brightness = 5
+														pointLight.Range = 20
+														pointLight.Color = Color3.fromHSV(TracerColor.Hue, TracerColor.Sat, TracerColor.Value)
+														pointLight.Parent = tracer
+														
+														-- Add beam for extra effect
+														local attachment0 = Instance.new('Attachment')
+														attachment0.Position = Vector3.new(0, 0, distance / 2)
+														attachment0.Parent = tracer
+														local attachment1 = Instance.new('Attachment')
+														attachment1.Position = Vector3.new(0, 0, -distance / 2)
+														attachment1.Parent = tracer
+														
+														local beam = Instance.new('Beam')
+														beam.Attachment0 = attachment0
+														beam.Attachment1 = attachment1
+														beam.Color = ColorSequence.new(Color3.fromHSV(TracerColor.Hue, TracerColor.Sat, TracerColor.Value))
+														beam.Width0 = 0.3
+														beam.Width1 = 0.3
+														beam.Transparency = NumberSequence.new(0.3)
+														beam.LightEmission = 1
+														beam.Parent = tracer
+													end
+													
+													-- Fade out animation with pulse effect
+													local startTime = tick()
+													local duration = TracerDuration.Value
+													while tick() - startTime < duration and tracer.Parent do
+														local progress = (tick() - startTime) / duration
+														local pulse = math.sin((tick() - startTime) * 10) * 0.1
+														tracer.Transparency = 0.2 + (0.8 * progress) + pulse
+														-- Rainbow effect
+														local hue = (TracerColor.Hue + (progress * 0.2)) % 1
+														tracer.Color = Color3.fromHSV(hue, TracerColor.Sat, TracerColor.Value)
+														task.wait()
+													end
+													tracer:Destroy()
+												end)
+											end
+											
+											-- FIXED: Use single task.spawn like CatV6
 											task.spawn(function()
-												local dir, id = CFrame.lookAt(pos, calc).LookVector, httpService:GenerateGUID(true)
-												local shootPosition = (CFrame.new(pos, calc) * CFrame.new(Vector3.new(-bedwars.BowConstantsTable.RelX, -bedwars.BowConstantsTable.RelY, -bedwars.BowConstantsTable.RelZ))).Position
-												
-												-- Spread shots slightly for multishot (FIXED)
-												if shotCount > 1 then
-													local spreadAngle = math.rad((shotIndex - (shotCount + 1) / 2) * 5)
-													dir = (CFrame.Angles(0, spreadAngle, 0) * CFrame.new(dir)).Position.Unit
-												end
-												
-												-- Create tracer if enabled
-												if Tracers.Enabled then
-													task.spawn(function()
-														local distance = (shootPosition - calc).Magnitude
-														local tracer = Instance.new('Part')
-														tracer.Name = 'ProjectileTracer'
-														tracer.Anchored = true
-														tracer.CanCollide = false
-														tracer.Size = Vector3.new(0.15, 0.15, distance)
-														tracer.CFrame = CFrame.lookAt(shootPosition, calc) * CFrame.new(0, 0, -distance / 2)
-														tracer.Material = Enum.Material.Neon
-														tracer.Color = Color3.fromHSV(TracerColor.Hue, TracerColor.Sat, TracerColor.Value)
-														tracer.Transparency = 0.2
-														tracer.Parent = workspace
-														
-														-- Add glow effect
-														if TracerGlow.Enabled then
-															local pointLight = Instance.new('PointLight')
-															pointLight.Brightness = 5
-															pointLight.Range = 20
-															pointLight.Color = Color3.fromHSV(TracerColor.Hue, TracerColor.Sat, TracerColor.Value)
-															pointLight.Parent = tracer
-															
-															-- Add beam for extra effect
-															local attachment0 = Instance.new('Attachment')
-															attachment0.Position = Vector3.new(0, 0, distance / 2)
-															attachment0.Parent = tracer
-															local attachment1 = Instance.new('Attachment')
-															attachment1.Position = Vector3.new(0, 0, -distance / 2)
-															attachment1.Parent = tracer
-															
-															local beam = Instance.new('Beam')
-															beam.Attachment0 = attachment0
-															beam.Attachment1 = attachment1
-															beam.Color = ColorSequence.new(Color3.fromHSV(TracerColor.Hue, TracerColor.Sat, TracerColor.Value))
-															beam.Width0 = 0.3
-															beam.Width1 = 0.3
-															beam.Transparency = NumberSequence.new(0.3)
-															beam.LightEmission = 1
-															beam.Parent = tracer
-														end
-														
-														-- Fade out animation with pulse effect
-														task.spawn(function()
-															local startTime = tick()
-															local duration = TracerDuration.Value
-															while tick() - startTime < duration and tracer.Parent do
-																local progress = (tick() - startTime) / duration
-																local pulse = math.sin((tick() - startTime) * 10) * 0.1
-																tracer.Transparency = 0.2 + (0.8 * progress) + pulse
-																-- Rainbow effect
-																local hue = (TracerColor.Hue + (progress * 0.2)) % 1
-																tracer.Color = Color3.fromHSV(hue, TracerColor.Sat, TracerColor.Value)
-																task.wait()
-															end
-															tracer:Destroy()
-														end)
-													end)
-												end
-												
 												-- Don't create local projectile, let server handle it
-												-- bedwars.ProjectileController:createLocalProjectile(meta, ammo, projectile, shootPosition, id, dir * projSpeed, {drawDurationSeconds = 1})
-												local res = projectileRemote:InvokeServer(item.tool, ammo, projectile, shootPosition, pos, dir * projSpeed, id, {drawDurationSeconds = 1, shotId = httpService:GenerateGUID(false)}, workspace:GetServerTimeNow() - 0.045)
+												local res = projectileRemote:InvokeServer(item.tool, ammo, projectile, shootPosition, pos, finalVelocity, id, {drawDurationSeconds = 1, shotId = httpService:GenerateGUID(false)}, workspace:GetServerTimeNow() - 0.045)
 												
 												-- Krystal Disabler: Hide projectile from anticheat
 												if res and KrystalDisabler.Enabled then
-													pcall(function()
-														res.Parent = replicatedStorage
-													end)
+													res.Parent = replicatedStorage
 												end
 												
 												if not res then
@@ -4593,7 +4595,8 @@ run(function()
 											end
 										end
 	
-										FireDelays[item.itemType] = tick() + (itemMeta.fireDelaySec * 0.5)
+										-- FIXED: Use exact CatV6 fire delay (no 0.5 multiplier)
+										FireDelays[item.itemType] = tick() + itemMeta.fireDelaySec
 										if switched then
 											task.wait(0.05)
 										end
@@ -4629,48 +4632,48 @@ run(function()
 		Name = 'Delay',
 		Min = 0.01,
 		Max = 1,
-		Default = 0.05,
+		Default = 0.1,
 		Decimal = 100,
 		Suffix = function(val)
 			return 's'
 		end,
-		Tooltip = 'Lower = faster shooting (IMBA: 0.01)'
+		Tooltip = 'Lower = faster shooting (IMBA: 0.01, Safe: 0.1)'
 	})
 	IgnoreWalls = ProjectileAura:CreateToggle({
 		Name = 'Ignore Walls',
-		Default = true,
-		Tooltip = 'Shoot through walls (IMBA)'
+		Default = false,
+		Tooltip = 'Shoot through walls (IMBA, disable for testing)'
 	})
 	MultiShot = ProjectileAura:CreateTwoSlider({
 		Name = 'Multi Shot',
 		Min = 1,
 		Max = 5,
-		Default = 3,
+		Default = 1,
 		Suffix = function(val)
 			return val == 1 and 'arrow' or 'arrows'
 		end,
-		Tooltip = 'Shoot multiple projectiles at once (IMBA)'
+		Tooltip = 'Shoot multiple projectiles at once (IMBA: 3-5, Safe: 1)'
 	})
 	SpeedMultiplier = ProjectileAura:CreateSlider({
 		Name = 'Speed Multiplier',
 		Min = 1,
 		Max = 3,
-		Default = 1.5,
+		Default = 1.0,
 		Decimal = 10,
 		Suffix = function(val)
 			return 'x'
 		end,
-		Tooltip = 'Projectile speed multiplier (IMBA: 2-3x)'
+		Tooltip = 'Projectile speed multiplier (IMBA: 2-3x, Safe: 1.0)'
 	})
 	Tracers = ProjectileAura:CreateToggle({
 		Name = 'Tracers',
-		Default = true,
+		Default = false,
 		Function = function(callback)
 			TracerColor.Object.Visible = callback
 			TracerDuration.Object.Visible = callback
 			TracerGlow.Object.Visible = callback
 		end,
-		Tooltip = 'Shows epic tracers with effects'
+		Tooltip = 'Shows epic tracers with effects (disable for testing)'
 	})
 	TracerColor = ProjectileAura:CreateColorSlider({
 		Name = 'Tracer Color',
@@ -4695,6 +4698,14 @@ run(function()
 	TracerGlow = ProjectileAura:CreateToggle({
 		Name = 'Tracer Glow',
 		Default = true,
+		Darker = true,
+		Tooltip = 'Adds glow effect to tracers'
+	})
+	KrystalDisabler = ProjectileAura:CreateToggle({
+		Name = 'Krystal Disabler',
+		Default = false,
+		Tooltip = 'Hides projectiles from anticheat (experimental)'
+	})
 		Darker = true,
 		Tooltip = 'Adds glow effect to tracers'
 	})
