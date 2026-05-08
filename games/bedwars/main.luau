@@ -750,7 +750,14 @@ local function downloadFile(path, func)
 	return (func or readfile)(path)
 end
 
-local Packages = httpService:JSONDecode(downloadFile('vapetweaker/profiles/packages.json'))
+local Packages = {}
+local suc, err = pcall(function()
+	Packages = httpService:JSONDecode(downloadFile('vapetweaker/profiles/packages.json'))
+end)
+if not suc then
+	warn('[VapeTweaker] Failed to load packages.json:', err)
+	warn('[VapeTweaker] Some features may not work correctly')
+end
 local debug = debug
 local require = require
 
