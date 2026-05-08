@@ -1010,7 +1010,7 @@ run(function()
 		elseif remoteName == 'GroundHit' then
 			return {
 				SendToServer = function(self, ...)
-					if NoFallDamage and NoFallDamage.Enabled then
+					if vape.Modules['No Fall Damage'] and vape.Modules['No Fall Damage'].Enabled then
 						return
 					end
 					return call:SendToServer(...)
@@ -4756,21 +4756,26 @@ run(function()
 						if entitylib.isAlive and store.equippedKit == 'grim_reaper' then
 							local localPosition = entitylib.character.RootPart.Position
 							
-							-- Iterate through all souls
-							for _, soul in bedwars.GrimReaperController.soulsByPosition do
+							-- Iterate through all souls (soulsByPosition is a table with position keys)
+							for pos, soul in bedwars.GrimReaperController.soulsByPosition do
 								if not GrimReaperSpeedModule.Enabled then break end
 								
-								local soulPart = soul.PrimaryPart or soul
-								if soulPart then
-									local distance = (soulPart.Position - localPosition).Magnitude
-									
-									-- Collect soul if in range (360 degrees, no direction check)
-									if distance <= Range.Value then
-										pcall(function()
-											bedwars.Client:Get(remotes.ConsumeSoul):CallServer({
-												secret = soul:GetAttribute('GrimReaperSoulSecret')
-											})
-										end)
+								if soul and soul:IsA('Model') then
+									local soulPart = soul.PrimaryPart or soul:FindFirstChildWhichIsA('BasePart')
+									if soulPart then
+										local distance = (soulPart.Position - localPosition).Magnitude
+										
+										-- Collect soul if in range (360 degrees, no direction check)
+										if distance <= Range.Value then
+											local secret = soul:GetAttribute('GrimReaperSoulSecret')
+											if secret then
+												pcall(function()
+													bedwars.Client:Get(remotes.ConsumeSoul):CallServer({
+														secret = secret
+													})
+												end)
+											end
+										end
 									end
 								end
 							end
