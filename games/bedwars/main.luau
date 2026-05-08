@@ -1007,15 +1007,6 @@ run(function()
 			}
 		elseif remoteName == 'StepOnSnapTrap' and TrapDisabler.Enabled then
 			return {SendToServer = function() end}
-		elseif remoteName == 'GroundHit' then
-			return {
-				SendToServer = function(self, ...)
-					if vape.Modules['No Fall Damage'] and vape.Modules['No Fall Damage'].Enabled then
-						return
-					end
-					return call:SendToServer(...)
-				end
-			}
 		end
 
 		return call
@@ -4709,7 +4700,21 @@ run(function()
 	NoFallDamage = vape.Categories.Blatant:CreateModule({
 		Name = 'No Fall Damage',
 		Tooltip = 'Prevents you from taking fall damage',
-		Function = function(callback) end
+		Function = function(callback)
+			if callback then
+				local oldGroundHit = bedwars.GroundHit
+				bedwars.GroundHit = function(...)
+					if NoFallDamage.Enabled then
+						return
+					end
+					return oldGroundHit(...)
+				end
+				
+				NoFallDamage:Clean(function()
+					bedwars.GroundHit = oldGroundHit
+				end)
+			end
+		end
 	})
 end)
 
