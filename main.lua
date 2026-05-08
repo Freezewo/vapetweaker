@@ -158,6 +158,27 @@ _G.vape = vape
 
 getgenv().canDebug = not table.find({'Xeno', 'Solara'}, ({identifyexecutor()})[1]) and debug.getconstant and debug.getproto and true or false
 
+-- AUTO REMOVE NEW TAGS (всегда активно)
+task.spawn(function()
+	repeat task.wait(0.5) until shared.vape and shared.vape.Categories
+	
+	for catName, cat in pairs(shared.vape.Categories) do
+		if cat.CreateModule then
+			local old = cat.CreateModule
+			cat.CreateModule = function(self, opt)
+				-- Удаляем NEW теги
+				if opt and opt.Tags and table.find(opt.Tags, 'new') then
+					local newIndex = table.find(opt.Tags, 'new')
+					if newIndex then
+						table.remove(opt.Tags, newIndex)
+					end
+				end
+				return old(self, opt)
+			end
+		end
+	end
+end)
+
 -- PREMIUM DUMPER - встроенный
 if getgenv().DumpPremium then
 	warn('[DUMPER] ===== PREMIUM DUMP ENABLED =====')
@@ -200,6 +221,8 @@ if getgenv().DumpPremium then
 		repeat task.wait(0.5) until shared.vape and shared.vape.Categories
 		warn('[DUMPER] Hooking modules...')
 		
+		local modulesWithNew = {}
+		
 		for catName, cat in pairs(shared.vape.Categories) do
 			if cat.CreateModule then
 				local old = cat.CreateModule
@@ -217,6 +240,16 @@ if getgenv().DumpPremium then
 						
 						if opt.Tags and table.find(opt.Tags, 'new') then
 							warn('[DUMPER] !!! NEW:', opt.Name, '!!!')
+							table.insert(modulesWithNew, opt.Name)
+							
+							-- УДАЛЯЕМ NEW ТЕГ!
+							if not getgenv().KeepNewTags then
+								local newIndex = table.find(opt.Tags, 'new')
+								if newIndex then
+									table.remove(opt.Tags, newIndex)
+									warn('[DUMPER] Removed NEW tag from:', opt.Name)
+								end
+							end
 						end
 					end
 					return old(self, opt)
@@ -229,11 +262,19 @@ if getgenv().DumpPremium then
 		task.wait(5)
 		pcall(function()
 			local httpService = game:GetService('HttpService')
+			dumpData._modulesWithNew = modulesWithNew
 			local json = httpService:JSONEncode(dumpData)
 			local filename = DUMP_FOLDER .. '/modules.json'
 			writefile(filename, json)
 			warn('[DUMPER] Saved modules to: ' .. filename)
-			warn('[DUMPER] Total modules: ' .. tostring(#dumpData))
+			warn('[DUMPER] Total modules with NEW: ' .. tostring(#modulesWithNew))
+			
+			if #modulesWithNew > 0 then
+				warn('[DUMPER] Modules that had NEW tag:')
+				for _, name in pairs(modulesWithNew) do
+					warn('[DUMPER]   - ' .. name)
+				end
+			end
 		end)
 	end)
 end
