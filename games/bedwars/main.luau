@@ -4761,24 +4761,14 @@ end)
 
 run(function()
 	local GrimReaperSpeedModule
+	local Range
 	
 	GrimReaperSpeedModule = vape.Categories.Blatant:CreateModule({
 		Name = 'Grim Reaper Speed',
-		Tooltip = 'Gives +20 speed when GrimReaper channel is active',
+		Tooltip = 'Gives +20 speed when GrimReaper channel is active and auto collects souls',
 		Function = function(callback)
 			GrimReaperSpeedEnabled = callback
-		end
-	})
-end)
-
-run(function()
-	local AutoSoulCollect
-	local Range
-	
-	AutoSoulCollect = vape.Categories.Blatant:CreateModule({
-		Name = 'Auto Soul Collect',
-		Tooltip = 'Automatically collects GrimReaper souls in 360 degrees',
-		Function = function(callback)
+			
 			if callback then
 				task.spawn(function()
 					repeat
@@ -4789,7 +4779,7 @@ run(function()
 							
 							-- Iterate through all souls
 							for _, soul in bedwars.GrimReaperController.soulsByPosition do
-								if not AutoSoulCollect.Enabled then break end
+								if not GrimReaperSpeedModule.Enabled then break end
 								
 								local soulPart = soul.PrimaryPart or soul
 								if soulPart then
@@ -4806,14 +4796,14 @@ run(function()
 								end
 							end
 						end
-					until not AutoSoulCollect.Enabled
+					until not GrimReaperSpeedModule.Enabled
 				end)
 			end
 		end
 	})
 	
-	Range = AutoSoulCollect:CreateSlider({
-		Name = 'Range',
+	Range = GrimReaperSpeedModule:CreateSlider({
+		Name = 'Soul Range',
 		Min = 10,
 		Max = 120,
 		Default = 30
