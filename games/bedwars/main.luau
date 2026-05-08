@@ -10700,7 +10700,7 @@ run(function()
 
     local clock = os.clock()
 
-    AutoEmber = vape.Categories.Kits:CreateModule({
+    AutoEmber = vape.Categories.Utility:CreateModule({
         Name = 'Auto Ember',
         Function = function(call)
             if call then
@@ -10796,7 +10796,7 @@ run(function()
         return drop
     end
 
-    AutoUma = vape.Categories.Kits:CreateModule({
+    AutoUma = vape.Categories.Utility:CreateModule({
         Name = 'Auto Uma',
         Tooltip = 'Automatically uses uma kit',
         Function = function(call)
@@ -10931,7 +10931,7 @@ end)
 run(function()
     local AutoAdetunde
 
-    AutoAdetunde = vape.Categories.Kits:CreateModule({
+    AutoAdetunde = vape.Categories.Utility:CreateModule({
         Name = 'Auto Adetunde',
         Tooltip = 'Automatically upgrades ur frosty hammer',
         Function = function(call)
@@ -10973,7 +10973,7 @@ end)
 run(function()
     local AutoPyro
 
-    AutoPyro = vape.Categories.Kits:CreateModule({
+    AutoPyro = vape.Categories.Utility:CreateModule({
         Name = 'Auto Pyro',
         Tooltip = 'Automatically upgrades flamethrower',
         Function = function(call)
@@ -11026,7 +11026,7 @@ run(function()
 
     local Request = bedwars.Client:Get('PaladinAbilityRequest')
 
-    AutoLani = vape.Categories.Kits:CreateModule({
+    AutoLani = vape.Categories.Utility:CreateModule({
         Name = 'Auto Lani',
         Tooltip = 'Automatically uses the "scepter of light" ability',
         Function = function(call)
@@ -11147,7 +11147,7 @@ run(function()
         return
     end
     
-    AutoNoelle = vape.Categories.Kits:CreateModule({
+    AutoNoelle = vape.Categories.Utility:CreateModule({
         Name = 'Auto Noelle',
         Tooltip = 'Automatically directs the slimes to the selected player\'s',
         Function = function(call)
@@ -11237,7 +11237,7 @@ run(function()
     local AutoMarina
     local Range
 
-    AutoMarina = vape.Categories.Kits:CreateModule({
+    AutoMarina = vape.Categories.Utility:CreateModule({
         Name = 'Auto Marina',
         Tooltip = 'Automatically uses "electrify" ability when enemies are near jellies',
         Function = function(call)
@@ -11300,7 +11300,7 @@ run(function()
         return bed, lastmag
     end
 
-    AutoBuilder = vape.Categories.Kits:CreateModule({
+    AutoBuilder = vape.Categories.Utility:CreateModule({
         Name = 'Auto Builder',
         Function = function(call)
             if call then
@@ -11354,7 +11354,7 @@ run(function()
     local AutoNyx
     local Targets
 
-    AutoNyx = vape.Categories.Kits:CreateModule({
+    AutoNyx = vape.Categories.Utility:CreateModule({
         Name = 'Auto Nyx',
         Tooltip = 'Automatically uses the "midnight" ability when meleeing a target',
         Function = function(call)
@@ -11384,7 +11384,7 @@ run(function()
     local Delay
     local Range
 
-    AutoSheep = vape.Categories.Kits:CreateModule({
+    AutoSheep = vape.Categories.Utility:CreateModule({
         Name = 'Auto Sheep Herder',
         Tooltip = 'Automatically tames sheep at a long range',
         Function = function(call)
@@ -11433,7 +11433,7 @@ run(function()
     local SelfHeal
     local TeammateHeal
 
-    AutoMelody = vape.Categories.Kits:CreateModule({
+    AutoMelody = vape.Categories.Utility:CreateModule({
         Name = 'Auto Melody',
         Tooltip = 'Automatically uses the guitar to heal ur teammates/urself',
         Function = function(call)
@@ -11492,7 +11492,7 @@ run(function()
     local UseTornando
     local TonradoRange
 
-    AutoRamil = vape.Categories.Kits:CreateModule({
+    AutoRamil = vape.Categories.Utility:CreateModule({
         Name = 'Auto Ramil',
         Tooltip = 'Automatically uses the ramil kit',
         Function = function(callback)
@@ -11579,7 +11579,7 @@ run(function()
 	local Range
 	local MinHP
 
-	AutoCaitlyn = vape.Categories.Kits:CreateModule({
+	AutoCaitlyn = vape.Categories.Utility:CreateModule({
         Name = 'Auto Caitlyn',
         Function = function(callback)
             AutoCaitlyn:Clean(vapeEvents.EntityDamageEvent.Event:Connect(function(damageTable)
@@ -11659,7 +11659,7 @@ run(function()
         return
     end
 
-    AutoZeno = vape.Categories.Kits:CreateModule({
+    AutoZeno = vape.Categories.Utility:CreateModule({
         Name = 'Auto Zeno',
         Function = function(call)
             if call then
@@ -11801,7 +11801,7 @@ run(function()
 
     local Delay = {}
 
-    AutoMetal = vape.Categories.Kits:CreateModule({
+    AutoMetal = vape.Categories.Utility:CreateModule({
         Name = 'Auto Metal',
         Tooltip = 'Automatically uses the metal kit',
         Function = function(call)
@@ -11917,7 +11917,7 @@ run(function()
         })
     end
     
-    AutoKaliyah = vape.Categories.Kits:CreateModule({
+    AutoKaliyah = vape.Categories.Utility:CreateModule({
         Name = 'Auto Kaliyah',
         Tooltip = 'Automatically uses the "punch" ability from kaliyah',
         Function = function(call)
@@ -11971,7 +11971,7 @@ run(function()
     local Animation
     local Delay
 
-    AutoElder = vape.Categories.Kits:CreateModule({
+    AutoElder = vape.Categories.Utility:CreateModule({
         Name = 'Auto Elder',
         Tooltip = 'Automatically collects tree orbs',
         Function = function(call)
@@ -12077,7 +12077,7 @@ run(function()
         return shop, items, upgrades, newid
     end
 
-    AutoTaliyah = vape.Categories.Kits:CreateModule({
+    AutoTaliyah = vape.Categories.Utility:CreateModule({
         Name = 'Auto Taliyah',
         Tooltip = 'Automatically buy chickens when it sells for emerald',
         Function = function(call)
@@ -12141,7 +12141,7 @@ run(function()
     local Animation
     local Delay
 
-    AutoStar = vape.Categories.Kits:CreateModule({
+    AutoStar = vape.Categories.Utility:CreateModule({
         Name = 'Auto Star Collector',
         Tooltip = 'Automatically collects stars',
         Function = function(call)
@@ -12228,7 +12228,7 @@ run(function()
     local Fly
     local Level
 
-    AutoWhisper = vape.Categories.Kits:CreateModule({
+    AutoWhisper = vape.Categories.Utility:CreateModule({
         Name = 'Auto Whisper',
         Function = function(callback)
             if callback then
@@ -12321,7 +12321,7 @@ run(function()
     local DepositRange
     local DepositDelay
 
-    AutoBee = vape.Categories.Kits:CreateModule({
+    AutoBee = vape.Categories.Utility:CreateModule({
         Name = 'Auto Beekeeper',
         Tooltip = 'Automatically deposit bees, and collects nearby bees',
         Function = function(call)
@@ -12434,7 +12434,7 @@ run(function()
     local FishermanSpy
     local Teammates
 
-    FishermanSpy = vape.Categories.Kits:CreateModule({
+    FishermanSpy = vape.Categories.Utility:CreateModule({
         Name = 'Fisherman Spy',
         Function = function(call)
             if call then
@@ -12470,7 +12470,7 @@ run(function()
 
     local old
 
-    AutoDavey = vape.Categories.Kits:CreateModule({
+    AutoDavey = vape.Categories.Utility:CreateModule({
         Name = 'Auto Davey',
         Tooltip = 'Automatically breaks cannon/jump on launch',
         Function = function(call)
@@ -12516,7 +12516,7 @@ run(function() -- Davey Aim
     local rayCheck = RaycastParams.new()
     rayCheck.RespectCanCollide = true
     
-    DaveyAim = vape.Categories.Kits:CreateModule({
+    DaveyAim = vape.Categories.Utility:CreateModule({
         Name = 'Davey Aim',
         Tooltip = 'Automatically aims cannon',
         Function = function(call)
@@ -12613,7 +12613,7 @@ run(function() -- Sigrid
     local SigridExploit
     local Kit, Mount = 'elk_master', bedwars.Client:Get('ElkKitMounted')
 
-    SigridExploit = vape.Categories.Kits:CreateModule({
+    SigridExploit = vape.Categories.Utility:CreateModule({
         Name = 'Infinite Sigrid',
         Tooltip = 'Lets you ride in the elk forever',
         Function = function(call)
@@ -12634,7 +12634,7 @@ end)
 run(function() -- Krystal
     local old
 
-    vape.Categories.Kits:CreateModule({
+    vape.Categories.Utility:CreateModule({
         Name = 'Infinite Krystal',
         Tooltip = 'Gives you max momentum forever',
         Function = function(call)
