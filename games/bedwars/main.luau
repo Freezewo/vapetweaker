@@ -305,6 +305,9 @@ end
 getgenv().getShieldAttribute = getShieldAttribute
 
 local knockbackSpeed, knockbackBoost = 0, tick()
+local DamageBoostValue = false
+local JadeHammerTick = 0
+
 local function getSpeed()
 	local multi, increase, modifiers = 0, true, bedwars.SprintController:getMovementStatusModifier():getModifiers()
 
@@ -324,7 +327,19 @@ local function getSpeed()
 		multi += 0.16 + (0.02 * math.round(multi))
 	end
 
-	return (20 + (knockbackBoost > tick() and knockbackSpeed or 0)) * (multi + 1)
+	local baseSpeed = (20 + (knockbackBoost > tick() and knockbackSpeed or 0)) * (multi + 1)
+	
+	-- JadeHammer speed boost
+	if (tick() - JadeHammerTick) <= 1.4 then
+		baseSpeed = baseSpeed + 30
+	end
+	
+	-- DamageBoost speed boost
+	if DamageBoostValue == true then
+		baseSpeed = baseSpeed + 20
+	end
+	
+	return baseSpeed
 end
 getgenv().getShieldAttribute = getShieldAttribute
 
@@ -4624,29 +4639,65 @@ end)
 run(function()
 	local DamageBoost
 	
-	local stack = 0
-
 	DamageBoost = vape.Categories.Blatant:CreateModule({
 		Name = 'Damage Boost',
-		Tooltip = 'Gives extra speed boost when damaged',
+		Tooltip = 'Boosts your speed while being damaged',
 		Function = function(callback)
 			if callback then
 				DamageBoost:Clean(vapeEvents.EntityDamageEvent.Event:Connect(function(damageTable)
-                    if entitylib.isAlive and tick() > stack and damageTable.entityInstance == lplr.Character and not LongJump.Enabled then
-						local horizontal = (damageTable.knockbackMultiplier and damageTable.knockbackMultiplier.horizontal or 0)
-						knockbackSpeed = bedwars.KnockbackUtil.calculateKnockbackVelocity(Vector3.one, 1, {
-							vertical = 0,
-							horizontal = horizontal
-						}).Magnitude * (0.9 + lplr:GetNetworkPing())
-
-						if knockbackSpeed then
-							stack = tick() + (knockbackSpeed / 45)
-							knockbackBoost = tick() + (horizontal / 3.5)
-						end
-                    end
-                end))
+					if entitylib.isAlive and damageTable.entityInstance == lplr.Character and damageTable.damage > 4 and not Fly.Enabled then
+						DamageBoostValue = true
+						task.wait(0.6)
+						DamageBoostValue = false
+					end
+				end))
 			end
 		end
+	})
+end)
+
+run(function()
+	local JadeHammerExploit
+	local SpamSpeed
+	
+	JadeHammerExploit = vape.Categories.Blatant:CreateModule({
+		Name = 'Jade Hammer Exploit',
+		Tooltip = 'Auto uses the hammer to reach high speeds',
+		Function = function(callback)
+			if callback then
+				task.spawn(function()
+					repeat
+						task.wait(1 / SpamSpeed.Value)
+						
+						if entitylib.isAlive and bedwars.matchState ~= 0 then
+							local hasJadeHammer = false
+							local inventory = bedwars.ClientStoreHandler:getState().Inventory
+							
+							if inventory and inventory.items then
+								for _, item in pairs(inventory.items) do
+									if item.itemType == "jade_hammer" then
+										hasJadeHammer = true
+										break
+									end
+								end
+							end
+							
+							if hasJadeHammer and (tick() - JadeHammerTick) > 6 then
+								JadeHammerTick = tick()
+								bedwars.AbilityController:useAbility("jade_hammer_jump")
+							end
+						end
+					until not JadeHammerExploit.Enabled
+				end)
+			end
+		end
+	})
+	
+	SpamSpeed = JadeHammerExploit:CreateSlider({
+		Name = 'Spam Speed',
+		Min = 1,
+		Max = 100,
+		Default = 10
 	})
 end)
 	
