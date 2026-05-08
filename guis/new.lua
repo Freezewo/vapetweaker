@@ -7026,13 +7026,6 @@ mainapi:CreateCategory({
 	Icon = getcustomasset('vapetweaker/assets/new/miniicon.png'),
 	Size = UDim2.fromOffset(19, 12)
 })
-if game.GameId == 2619619496 then
-	mainapi:CreateCategory({
-		Name = 'Kits',
-		Icon = getcustomasset('vapetweaker/assets/new/friendstab.png'),
-		Size = UDim2.fromOffset(15, 15)
-	})
-end
 mainapi.Categories.Main:CreateDivider('misc')
 
 --[[
