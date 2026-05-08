@@ -4642,18 +4642,18 @@ run(function()
 	DamageBoost = vape.Categories.Blatant:CreateModule({
 		Name = 'Damage Boost',
 		Tooltip = 'Boosts your speed while being damaged',
-		Function = function(callback)
-			if callback then
-				DamageBoost:Clean(vapeEvents.EntityDamageEvent.Event:Connect(function(damageTable)
-					if entitylib.isAlive and damageTable.entityInstance == lplr.Character and damageTable.damage > 4 and not Fly.Enabled then
-						DamageBoostValue = true
-						task.wait(0.6)
-						DamageBoostValue = false
-					end
-				end))
-			end
-		end
+		Function = function(callback) end
 	})
+	
+	bedwars.ZapNetworking.EntityDamageEventZap.On(function(entityInstance, damage)
+		if entitylib.isAlive and entityInstance == lplr.Character and damage > 4 and bedwars.matchState ~= 0 and DamageBoost.Enabled and not Fly.Enabled then
+			DamageBoostValue = true
+			
+			task.wait(0.6)
+			
+			DamageBoostValue = false
+		end
+	end)
 end)
 
 run(function()
@@ -4670,17 +4670,7 @@ run(function()
 						task.wait(1 / SpamSpeed.Value)
 						
 						if entitylib.isAlive and bedwars.matchState ~= 0 then
-							local hasJadeHammer = false
-							local inventory = bedwars.ClientStoreHandler:getState().Inventory
-							
-							if inventory and inventory.items then
-								for _, item in pairs(inventory.items) do
-									if item.itemType == "jade_hammer" then
-										hasJadeHammer = true
-										break
-									end
-								end
-							end
+							local hasJadeHammer = getItem('jade_hammer')
 							
 							if hasJadeHammer and (tick() - JadeHammerTick) > 6 then
 								JadeHammerTick = tick()
