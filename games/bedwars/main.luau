@@ -79,6 +79,7 @@ getgenv().store = store
 local Reach: VapeModule
 local HitBoxes: VapeModule
 local TrapDisabler
+local NoFallDamage
 local AntiFallPart
 local bedwars, remotes, sides, oldinvrender = setmetatable({}, {}), nil, {}, nil
 
@@ -1007,7 +1008,14 @@ run(function()
 		elseif remoteName == 'StepOnSnapTrap' and TrapDisabler.Enabled then
 			return {SendToServer = function() end}
 		elseif remoteName == 'GroundHit' then
-			return {SendToServer = function() print('attempt call') end}
+			return {
+				SendToServer = function(self, ...)
+					if NoFallDamage and NoFallDamage.Enabled then
+						return
+					end
+					return call:SendToServer(...)
+				end
+			}
 		end
 
 		return call
@@ -4698,39 +4706,10 @@ run(function()
 end)
 
 run(function()
-	local NoFallDamage
-	
 	NoFallDamage = vape.Categories.Blatant:CreateModule({
 		Name = 'No Fall Damage',
 		Tooltip = 'Prevents you from taking fall damage',
-		Function = function(callback)
-			if callback then
-				task.spawn(function()
-					repeat
-						task.wait(0.1)
-						
-						if entitylib.isAlive and not Fly.Enabled then
-							local root = entitylib.character.RootPart
-							local velocity = root.Velocity
-							
-							-- If falling fast, send fake ground hit to prevent damage
-							if velocity.Y < -50 then
-								local nearestBlock = bedwars.BlockController:getBlockPosition(root.Position + Vector3.new(0, -5, 0))
-								if nearestBlock then
-									-- Clamp velocity to prevent fall damage
-									root.Velocity = Vector3.new(velocity.X, math.clamp(velocity.Y, -50, math.huge), velocity.Z)
-									
-									-- Send fake ground hit
-									pcall(function()
-										bedwars.Client:Get('GroundHit'):SendToServer(nearestBlock, velocity, workspace:GetServerTimeNow())
-									end)
-								end
-							end
-						end
-					until not NoFallDamage.Enabled
-				end)
-			end
-		end
+		Function = function(callback) end
 	})
 end)
 
