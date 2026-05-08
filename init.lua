@@ -1,5 +1,7 @@
 --!nocheck
 shared.catdata = {Key = script_key or 'none'}
+getgenv().catrole = 'Premium'
+getgenv().catname = 'VapeTweaker User'
 local isfile = isfile or function(file)
 	local suc, res = pcall(function()
 		return readfile(file)

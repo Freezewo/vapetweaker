@@ -157,9 +157,68 @@ shared.vape = vape
 _G.vape = vape
 
 getgenv().canDebug = not table.find({'Xeno', 'Solara'}, ({identifyexecutor()})[1]) and debug.getconstant and debug.getproto and true or false
+
+-- PREMIUM DUMPER - встроенный
+if getgenv().DumpPremium then
+	warn('[DUMPER] ===== PREMIUM DUMP ENABLED =====')
+	
+	local DUMP_FOLDER = 'vapetweaker/dumps'
+	pcall(function()
+		if not isfolder('vapetweaker') then makefolder('vapetweaker') end
+		if not isfolder(DUMP_FOLDER) then makefolder(DUMP_FOLDER) end
+		warn('[DUMPER] Folder created')
+	end)
+	
+	-- Перехват loadstring
+	local oldLoadstring = loadstring
+	loadstring = function(source, chunkname, ...)
+		pcall(function()
+			if type(source) == 'string' and #source > 100 then
+				local tag = tostring(chunkname or '')
+				if tag:find('paid') or tag:find('premium') then
+					warn('[DUMPER] !!! PREMIUM CAUGHT !!!')
+					writefile(DUMP_FOLDER .. '/premium_raw.lua', source)
+					warn('[DUMPER] Saved premium code!')
+				end
+			end
+		end)
+		return oldLoadstring(source, chunkname, ...)
+	end
+	
+	-- Перехват модулей
+	task.spawn(function()
+		repeat task.wait(0.5) until shared.vape and shared.vape.Categories
+		warn('[DUMPER] Hooking modules...')
+		
+		for catName, cat in pairs(shared.vape.Categories) do
+			if cat.CreateModule then
+				local old = cat.CreateModule
+				cat.CreateModule = function(self, opt)
+					if opt and opt.Name then
+						warn('[DUMPER] Module:', opt.Name)
+						if opt.Tags and table.find(opt.Tags, 'new') then
+							warn('[DUMPER] !!! NEW:', opt.Name, '!!!')
+						end
+					end
+					return old(self, opt)
+				end
+			end
+		end
+		warn('[DUMPER] Hooks installed!')
+	end)
+end
+
 if not shared.VapeIndependent then
 	loadstring(downloadFile('vapetweaker/games/universal.lua'), 'universal')()
 
+	-- Load dumper BEFORE premium loads
+	if shared.VapeDeveloper or getgenv().DumpPremium then
+		pcall(function()
+			loadstring(readfile('vapetweaker/tools/advanced_dumper.lua'), 'dumper')()
+			warn('[VapeTweaker] Advanced dumper loaded!')
+		end)
+	end
+	
 	local found = false
 	local callback = shared.VapeDeveloper and readfile or downloadFile
 	
