@@ -307,6 +307,7 @@ getgenv().getShieldAttribute = getShieldAttribute
 local knockbackSpeed, knockbackBoost = 0, tick()
 local DamageBoostValue = false
 local JadeHammerTick = 0
+local GrimReaperSpeed = false
 
 local function getSpeed()
 	local multi, increase, modifiers = 0, true, bedwars.SprintController:getMovementStatusModifier():getModifiers()
@@ -336,6 +337,11 @@ local function getSpeed()
 	
 	-- DamageBoost speed boost
 	if DamageBoostValue == true then
+		baseSpeed = baseSpeed + 20
+	end
+	
+	-- GrimReaper speed boost
+	if GrimReaperSpeed == true then
 		baseSpeed = baseSpeed + 20
 	end
 	
@@ -4688,6 +4694,95 @@ run(function()
 		Min = 1,
 		Max = 100,
 		Default = 100
+	})
+end)
+
+run(function()
+	local NoFallDamage
+	
+	NoFallDamage = vape.Categories.Blatant:CreateModule({
+		Name = 'No Fall Damage',
+		Tooltip = 'Prevents you from taking fall damage',
+		Function = function(callback)
+			if callback then
+				task.spawn(function()
+					repeat
+						task.wait(0.1)
+						
+						if entitylib.isAlive and not Fly.Enabled then
+							local root = entitylib.character.RootPart
+							local velocity = root.Velocity
+							
+							-- If falling fast, send fake ground hit to prevent damage
+							if velocity.Y < -50 then
+								local nearestBlock = bedwars.BlockController:getBlockPosition(root.Position + Vector3.new(0, -5, 0))
+								if nearestBlock then
+									-- Clamp velocity to prevent fall damage
+									root.Velocity = Vector3.new(velocity.X, math.clamp(velocity.Y, -50, math.huge), velocity.Z)
+									
+									-- Send fake ground hit
+									pcall(function()
+										bedwars.Client:Get('GroundHit'):SendToServer(nearestBlock, velocity, workspace:GetServerTimeNow())
+									end)
+								end
+							end
+						end
+					until not NoFallDamage.Enabled
+				end)
+			end
+		end
+	})
+end)
+
+run(function()
+	local ZephyrExploit
+	
+	ZephyrExploit = vape.Categories.Blatant:CreateModule({
+		Name = 'Zephyr Exploit',
+		Tooltip = 'Resets Zephyr ability cooldown on kill (Wind Walker kit)',
+		Function = function(callback)
+			if callback then
+				ZephyrExploit:Clean(vapeEvents.EntityDeathEvent.Event:Connect(function(deathTable)
+					if entitylib.isAlive and bedwars.matchState ~= 0 and store.equippedKit == 'wind_walker' then
+						local killer = playersService:GetPlayerFromCharacter(deathTable.fromEntity)
+						local killed = playersService:GetPlayerFromCharacter(deathTable.entityInstance)
+						
+						if killer and killed and killer == lplr and killed ~= lplr then
+							pcall(function()
+								bedwars.CooldownController:setOnCooldown('wind_walker_jump', 0, false)
+							end)
+						end
+					end
+				end))
+			end
+		end
+	})
+end)
+
+run(function()
+	local GrimReaperSpeedModule
+	
+	GrimReaperSpeedModule = vape.Categories.Blatant:CreateModule({
+		Name = 'Grim Reaper Speed',
+		Tooltip = 'Gives +20 speed when GrimReaper channel is active',
+		Function = function(callback)
+			if callback then
+				task.spawn(function()
+					repeat
+						task.wait(0.1)
+						
+						if entitylib.isAlive then
+							local hasGrimChannel = lplr.Character:GetAttribute('GrimReaperChannel')
+							GrimReaperSpeed = hasGrimChannel ~= nil
+						else
+							GrimReaperSpeed = false
+						end
+					until not GrimReaperSpeedModule.Enabled
+				end)
+			else
+				GrimReaperSpeed = false
+			end
+		end
 	})
 end)
 	
