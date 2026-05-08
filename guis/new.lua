@@ -4978,11 +4978,25 @@ function mainapi:CreateSearch()
 	searchicon.Image = getcustomasset('vapetweaker/assets/new/search.png')
 	searchicon.ImageColor3 = color.Light(uipallet.Main, 0.37)
 	searchicon.Parent = searchbkg
+	local legiticon = Instance.new('ImageButton')
+	legiticon.Name = 'Legit'
+	legiticon.Size = UDim2.fromOffset(29, 16)
+	legiticon.Position = UDim2.fromOffset(8, 11)
+	legiticon.BackgroundTransparency = 1
+	legiticon.Image = getcustomasset('vapetweaker/assets/new/legit.png')
+	legiticon.Parent = searchbkg
+	local legitdivider = Instance.new('Frame')
+	legitdivider.Name = 'LegitDivider'
+	legitdivider.Size = UDim2.fromOffset(2, 12)
+	legitdivider.Position = UDim2.fromOffset(43, 13)
+	legitdivider.BackgroundColor3 = color.Light(uipallet.Main, 0.14)
+	legitdivider.BorderSizePixel = 0
+	legitdivider.Parent = searchbkg
 	addBlur(searchbkg)
 	addCorner(searchbkg)
 	local search = Instance.new('TextBox')
-	search.Size = UDim2.new(1, -30, 0, 37)
-	search.Position = UDim2.fromOffset(15, 0)
+	search.Size = UDim2.new(1, -50, 0, 37)
+	search.Position = UDim2.fromOffset(50, 0)
 	search.BackgroundTransparency = 1
 	search.Text = ''
 	search.PlaceholderText = ''
@@ -5018,6 +5032,11 @@ function mainapi:CreateSearch()
 
 	children:GetPropertyChangedSignal('CanvasPosition'):Connect(function()
 		divider.Visible = children.CanvasPosition.Y > 10 and children.Visible
+	end)
+	legiticon.MouseButton1Click:Connect(function()
+		clickgui.Visible = false
+		self.Legit.Window.Visible = true
+		self.Legit.Window.Position = UDim2.new(0.5, -350, 0.5, -194)
 	end)
 	local function hasAlias(alias, text)
 		for _, v in alias do
@@ -5104,6 +5123,8 @@ function mainapi:CreateSearch()
 		children.CanvasSize = UDim2.fromOffset(0, windowlist.AbsoluteContentSize.Y / scale.Scale)
 		searchbkg.Size = UDim2.fromOffset(220, math.min(37 + windowlist.AbsoluteContentSize.Y / scale.Scale, 437))
 	end)
+
+	self.Legit.Icon = legiticon
 end
 
 function mainapi:CreateLegit()
@@ -6628,7 +6649,7 @@ function mainapi:Load(skipgui, profile, profiledata)
 			end
 		end
 
-		if savedata.Legit and self.Legit then
+		if savedata.Legit then
 			for i, v in savedata.Legit do
 				local object = self.Legit.Modules[i]
 				if not object then continue end
@@ -6723,7 +6744,7 @@ function mainapi:LoadOptions(object, savedoptions)
 end
 
 function mainapi:Remove(obj)
-	local tab = (self.Modules[obj] and self.Modules or (self.Legit and self.Legit.Modules[obj] and self.Legit.Modules) or self.Categories)
+	local tab = (self.Modules[obj] and self.Modules or self.Legit.Modules[obj] and self.Legit.Modules or self.Categories)
 	if tab and tab[obj] then
 		local newobj = tab[obj]
 		if self.ThreadFix then
@@ -6777,7 +6798,7 @@ function mainapi:Save(newprofile)
 		}
 	end
 
-	for i, v in self.Legit and self.Legit.Modules or {} do
+	for i, v in self.Legit.Modules do
 		savedata.Legit[i] = {
 			Enabled = v.Enabled,
 			Position = v.Children and {X = v.Children.Position.X.Offset, Y = v.Children.Position.Y.Offset} or nil,
@@ -6807,7 +6828,7 @@ function mainapi:Uninject()
 			v:Toggle()
 		end
 	end
-	for _, v in self.Legit and self.Legit.Modules or {} do
+	for _, v in self.Legit.Modules do
 		if v.Enabled then
 			v:Toggle()
 		end
@@ -7124,7 +7145,7 @@ targets = mainapi:CreateCategoryList({
 targets.Update = Instance.new('BindableEvent')
 mainapi:Clean(targets.Update)
 
---mainapi:CreateLegit()
+mainapi:CreateLegit()
 mainapi:CreateProfileGUI()
 mainapi:CreateSearch()
 mainapi.Categories.Main:CreateOverlayBar()
@@ -7233,7 +7254,7 @@ guipane:CreateToggle({
 	Default = true,
 	Tooltip = 'Toggles visibility of these'
 })
---[[guipane:CreateToggle({
+guipane:CreateToggle({
 	Name = 'Show legit mode',
 	Function = function(enabled)
 		clickgui.Search.Legit.Visible = enabled
@@ -7243,7 +7264,7 @@ guipane:CreateToggle({
 	end,
 	Default = true,
 	Tooltip = 'Shows the button to change to Legit Mode'
-})]]
+})
 local scaleslider = {Object = {}, Value = 1}
 mainapi.Scale = guipane:CreateToggle({
 	Name = 'Auto rescale',
@@ -8099,7 +8120,7 @@ function mainapi:UpdateGUI(hue, sat, val, default)
 		end
 	end
 
-	if not clickgui.Visible and not (mainapi.Legit and mainapi.Legit.Window.Visible) then return end
+	if not clickgui.Visible and not mainapi.Legit.Window.Visible then return end
 	local rainbow = mainapi.GUIColor.Rainbow and mainapi.RainbowMode.Value ~= 'Retro'
 
 	for i, v in mainapi.Categories do
@@ -8172,7 +8193,7 @@ function mainapi:UpdateGUI(hue, sat, val, default)
 		end
 	end
 
-	if mainapi.Legit and mainapi.Legit.Icon then
+	if mainapi.Legit.Icon then
 		mainapi.Legit.Icon.ImageColor3 = Color3.fromHSV(hue, sat, val)
 	end
 
@@ -8182,7 +8203,7 @@ function mainapi:UpdateGUI(hue, sat, val, default)
 		end
 	end
 
-	if mainapi.Legit and mainapi.Legit.Window.Visible then
+	if mainapi.Legit.Window.Visible then
 		for _, v in mainapi.Legit.Modules do
 			if v.Enabled then
 				tween:Cancel(v.Object.Knob)
