@@ -10691,6 +10691,7 @@ run(function()
 	})
 end)
 
+--[[
 run(function()
     local AutoEmber
     local Targets
@@ -12651,6 +12652,7 @@ run(function() -- Krystal
         end
     })
 end)
+]]
 
 --[[
     Legit
