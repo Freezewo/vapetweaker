@@ -6031,7 +6031,7 @@ end)
 run(function()
 	local AutoBalloon
 	
-	AutoBalloon = vape.Categories.Utility:CreateModule({
+	AutoBalloon = vape.Categories.Kits:CreateModule({
 		Name = 'Auto Balloon',
 		Function = function(callback)
 			if callback then
@@ -6415,7 +6415,7 @@ run(function()
 		end
 	}
 	
-	AutoKit = vape.Categories.Utility:CreateModule({
+	AutoKit = vape.Categories.Kits:CreateModule({
 		Name = 'Auto Kit',
 		Function = function(callback)
 			if callback then
@@ -6529,7 +6529,7 @@ run(function()
 		return nil
 	end
 	
-	AutoPearl = vape.Categories.Utility:CreateModule({
+	AutoPearl = vape.Categories.Kits:CreateModule({
 		Name = 'Auto Pearl',
 		Function = function(callback)
 			if callback then
@@ -6633,7 +6633,7 @@ run(function()
 		end
 	end
 	
-	AutoPlay = vape.Categories.Utility:CreateModule({
+	AutoPlay = vape.Categories.Kits:CreateModule({
 		Name = 'Auto Play',
 		Function = function(callback)
 			if callback then
@@ -6656,7 +6656,7 @@ end)
 run(function()
     local AntiSuffocate
 
-    AntiSuffocate = vape.Categories.Utility:CreateModule({
+    AntiSuffocate = vape.Categories.Kits:CreateModule({
         Name = 'Anti Suffocate',
         Function = function(call)
             if call then
@@ -6689,7 +6689,7 @@ run(function()
 
     local old, last = nil, 0
     local charge = 0
-    AutoRelease = vape.Categories.Utility:CreateModule({
+    AutoRelease = vape.Categories.Kits:CreateModule({
         Name = 'Auto Release',
 		Disabled = not canDebug,
         Tooltip = 'Automatically releases ur projectile source when\nat certain charging percentage',
@@ -6861,7 +6861,7 @@ run(function()
 		end
 	end
 
-	AutoShoot = vape.Categories.Utility:CreateModule({
+	AutoShoot = vape.Categories.Kits:CreateModule({
 		Name = 'Auto Shoot',
 		Disabled = not canDebug,
 		Tooltip = 'Automatically swaps to another projectile source while swinging ur sword',
@@ -6960,7 +6960,7 @@ run(function()
 		end
 	end
 	
-	AutoToxic = vape.Categories.Utility:CreateModule({
+	AutoToxic = vape.Categories.Kits:CreateModule({
 		Name = 'Auto Toxic',
 		Function = function(callback)
 			if callback then
@@ -7033,7 +7033,7 @@ run(function()
 	local AutoVoidDrop
 	local OwlCheck
 	
-	AutoVoidDrop = vape.Categories.Utility:CreateModule({
+	AutoVoidDrop = vape.Categories.Kits:CreateModule({
 		Name = 'Auto Void Drop',
 		Function = function(callback)
 			if callback then
@@ -7086,7 +7086,7 @@ end)
 run(function()
 	local MissileTP
 	
-	MissileTP = vape.Categories.Utility:CreateModule({
+	MissileTP = vape.Categories.Kits:CreateModule({
 		Name = 'Missile TP',
 		Function = function(callback)
 			if callback then
@@ -7130,7 +7130,7 @@ run(function()
 	local Network
 	local Lower
 	
-	PickupRange = vape.Categories.Utility:CreateModule({
+	PickupRange = vape.Categories.Kits:CreateModule({
 		Name = 'Pickup Range',
 		Function = function(callback)
 			if callback then
@@ -7190,7 +7190,7 @@ end)
 run(function()
 	local RavenTP
 	
-	RavenTP = vape.Categories.Utility:CreateModule({
+	RavenTP = vape.Categories.Kits:CreateModule({
 		Name = 'Raven TP',
 		Function = function(callback)
 			if callback then
@@ -7303,7 +7303,7 @@ run(function()
 		return nil, 0
 	end
 	
-	Scaffold = vape.Categories.Utility:CreateModule({
+	Scaffold = vape.Categories.Kits:CreateModule({
 		Name = 'Scaffold',
 		Function = function(callback)
 			if label then
@@ -7410,7 +7410,7 @@ run(function()
 	local tiered, nexttier = {}, {}
 	local old
 	
-	ShopTierBypass = vape.Categories.Utility:CreateModule({
+	ShopTierBypass = vape.Categories.Kits:CreateModule({
 		Name = 'Shop Tier Bypass',
 		Function = function(callback)
 			if callback then
@@ -7598,7 +7598,7 @@ run(function()
 		end
 	end
 	
-	StaffDetector = vape.Categories.Utility:CreateModule({
+	StaffDetector = vape.Categories.Kits:CreateModule({
 		Name = 'Staff Detector',
 		Function = function(callback)
 			if callback then
@@ -7641,7 +7641,7 @@ run(function()
 end)
 	
 run(function()
-	TrapDisabler = vape.Categories.Utility:CreateModule({
+	TrapDisabler = vape.Categories.Kits:CreateModule({
 		Name = 'Trap Disabler',
 		Tooltip = 'Disables Snap Traps'
 	})
@@ -10700,7 +10700,7 @@ run(function()
 
     local clock = os.clock()
 
-    AutoEmber = vape.Categories.Utility:CreateModule({
+    AutoEmber = vape.Categories.Kits:CreateModule({
         Name = 'Auto Ember',
         Function = function(call)
             if call then
@@ -10796,7 +10796,7 @@ run(function()
         return drop
     end
 
-    AutoUma = vape.Categories.Utility:CreateModule({
+    AutoUma = vape.Categories.Kits:CreateModule({
         Name = 'Auto Uma',
         Tooltip = 'Automatically uses uma kit',
         Function = function(call)
@@ -10931,7 +10931,7 @@ end)
 run(function()
     local AutoAdetunde
 
-    AutoAdetunde = vape.Categories.Utility:CreateModule({
+    AutoAdetunde = vape.Categories.Kits:CreateModule({
         Name = 'Auto Adetunde',
         Tooltip = 'Automatically upgrades ur frosty hammer',
         Function = function(call)
@@ -10973,7 +10973,7 @@ end)
 run(function()
     local AutoPyro
 
-    AutoPyro = vape.Categories.Utility:CreateModule({
+    AutoPyro = vape.Categories.Kits:CreateModule({
         Name = 'Auto Pyro',
         Tooltip = 'Automatically upgrades flamethrower',
         Function = function(call)
@@ -11026,7 +11026,7 @@ run(function()
 
     local Request = bedwars.Client:Get('PaladinAbilityRequest')
 
-    AutoLani = vape.Categories.Utility:CreateModule({
+    AutoLani = vape.Categories.Kits:CreateModule({
         Name = 'Auto Lani',
         Tooltip = 'Automatically uses the "scepter of light" ability',
         Function = function(call)
@@ -11147,7 +11147,7 @@ run(function()
         return
     end
     
-    AutoNoelle = vape.Categories.Utility:CreateModule({
+    AutoNoelle = vape.Categories.Kits:CreateModule({
         Name = 'Auto Noelle',
         Tooltip = 'Automatically directs the slimes to the selected player\'s',
         Function = function(call)
@@ -11237,7 +11237,7 @@ run(function()
     local AutoMarina
     local Range
 
-    AutoMarina = vape.Categories.Utility:CreateModule({
+    AutoMarina = vape.Categories.Kits:CreateModule({
         Name = 'Auto Marina',
         Tooltip = 'Automatically uses "electrify" ability when enemies are near jellies',
         Function = function(call)
@@ -11300,7 +11300,7 @@ run(function()
         return bed, lastmag
     end
 
-    AutoBuilder = vape.Categories.Utility:CreateModule({
+    AutoBuilder = vape.Categories.Kits:CreateModule({
         Name = 'Auto Builder',
         Function = function(call)
             if call then
@@ -11354,7 +11354,7 @@ run(function()
     local AutoNyx
     local Targets
 
-    AutoNyx = vape.Categories.Utility:CreateModule({
+    AutoNyx = vape.Categories.Kits:CreateModule({
         Name = 'Auto Nyx',
         Tooltip = 'Automatically uses the "midnight" ability when meleeing a target',
         Function = function(call)
@@ -11384,7 +11384,7 @@ run(function()
     local Delay
     local Range
 
-    AutoSheep = vape.Categories.Utility:CreateModule({
+    AutoSheep = vape.Categories.Kits:CreateModule({
         Name = 'Auto Sheep Herder',
         Tooltip = 'Automatically tames sheep at a long range',
         Function = function(call)
@@ -11433,7 +11433,7 @@ run(function()
     local SelfHeal
     local TeammateHeal
 
-    AutoMelody = vape.Categories.Utility:CreateModule({
+    AutoMelody = vape.Categories.Kits:CreateModule({
         Name = 'Auto Melody',
         Tooltip = 'Automatically uses the guitar to heal ur teammates/urself',
         Function = function(call)
@@ -11492,7 +11492,7 @@ run(function()
     local UseTornando
     local TonradoRange
 
-    AutoRamil = vape.Categories.Utility:CreateModule({
+    AutoRamil = vape.Categories.Kits:CreateModule({
         Name = 'Auto Ramil',
         Tooltip = 'Automatically uses the ramil kit',
         Function = function(callback)
@@ -11579,7 +11579,7 @@ run(function()
 	local Range
 	local MinHP
 
-	AutoCaitlyn = vape.Categories.Utility:CreateModule({
+	AutoCaitlyn = vape.Categories.Kits:CreateModule({
         Name = 'Auto Caitlyn',
         Function = function(callback)
             AutoCaitlyn:Clean(vapeEvents.EntityDamageEvent.Event:Connect(function(damageTable)
@@ -11659,7 +11659,7 @@ run(function()
         return
     end
 
-    AutoZeno = vape.Categories.Utility:CreateModule({
+    AutoZeno = vape.Categories.Kits:CreateModule({
         Name = 'Auto Zeno',
         Function = function(call)
             if call then
@@ -11801,7 +11801,7 @@ run(function()
 
     local Delay = {}
 
-    AutoMetal = vape.Categories.Utility:CreateModule({
+    AutoMetal = vape.Categories.Kits:CreateModule({
         Name = 'Auto Metal',
         Tooltip = 'Automatically uses the metal kit',
         Function = function(call)
@@ -11917,7 +11917,7 @@ run(function()
         })
     end
     
-    AutoKaliyah = vape.Categories.Utility:CreateModule({
+    AutoKaliyah = vape.Categories.Kits:CreateModule({
         Name = 'Auto Kaliyah',
         Tooltip = 'Automatically uses the "punch" ability from kaliyah',
         Function = function(call)
@@ -11971,7 +11971,7 @@ run(function()
     local Animation
     local Delay
 
-    AutoElder = vape.Categories.Utility:CreateModule({
+    AutoElder = vape.Categories.Kits:CreateModule({
         Name = 'Auto Elder',
         Tooltip = 'Automatically collects tree orbs',
         Function = function(call)
@@ -12077,7 +12077,7 @@ run(function()
         return shop, items, upgrades, newid
     end
 
-    AutoTaliyah = vape.Categories.Utility:CreateModule({
+    AutoTaliyah = vape.Categories.Kits:CreateModule({
         Name = 'Auto Taliyah',
         Tooltip = 'Automatically buy chickens when it sells for emerald',
         Function = function(call)
@@ -12141,7 +12141,7 @@ run(function()
     local Animation
     local Delay
 
-    AutoStar = vape.Categories.Utility:CreateModule({
+    AutoStar = vape.Categories.Kits:CreateModule({
         Name = 'Auto Star Collector',
         Tooltip = 'Automatically collects stars',
         Function = function(call)
@@ -12228,7 +12228,7 @@ run(function()
     local Fly
     local Level
 
-    AutoWhisper = vape.Categories.Utility:CreateModule({
+    AutoWhisper = vape.Categories.Kits:CreateModule({
         Name = 'Auto Whisper',
         Function = function(callback)
             if callback then
@@ -12321,7 +12321,7 @@ run(function()
     local DepositRange
     local DepositDelay
 
-    AutoBee = vape.Categories.Utility:CreateModule({
+    AutoBee = vape.Categories.Kits:CreateModule({
         Name = 'Auto Beekeeper',
         Tooltip = 'Automatically deposit bees, and collects nearby bees',
         Function = function(call)
@@ -12434,7 +12434,7 @@ run(function()
     local FishermanSpy
     local Teammates
 
-    FishermanSpy = vape.Categories.Utility:CreateModule({
+    FishermanSpy = vape.Categories.Kits:CreateModule({
         Name = 'Fisherman Spy',
         Function = function(call)
             if call then
@@ -12470,7 +12470,7 @@ run(function()
 
     local old
 
-    AutoDavey = vape.Categories.Utility:CreateModule({
+    AutoDavey = vape.Categories.Kits:CreateModule({
         Name = 'Auto Davey',
         Tooltip = 'Automatically breaks cannon/jump on launch',
         Function = function(call)
@@ -12516,7 +12516,7 @@ run(function() -- Davey Aim
     local rayCheck = RaycastParams.new()
     rayCheck.RespectCanCollide = true
     
-    DaveyAim = vape.Categories.Utility:CreateModule({
+    DaveyAim = vape.Categories.Kits:CreateModule({
         Name = 'Davey Aim',
         Tooltip = 'Automatically aims cannon',
         Function = function(call)
@@ -12613,7 +12613,7 @@ run(function() -- Sigrid
     local SigridExploit
     local Kit, Mount = 'elk_master', bedwars.Client:Get('ElkKitMounted')
 
-    SigridExploit = vape.Categories.Utility:CreateModule({
+    SigridExploit = vape.Categories.Kits:CreateModule({
         Name = 'Infinite Sigrid',
         Tooltip = 'Lets you ride in the elk forever',
         Function = function(call)
@@ -12634,7 +12634,7 @@ end)
 run(function() -- Krystal
     local old
 
-    vape.Categories.Utility:CreateModule({
+    vape.Categories.Kits:CreateModule({
         Name = 'Infinite Krystal',
         Tooltip = 'Gives you max momentum forever',
         Function = function(call)
