@@ -163,10 +163,19 @@ if getgenv().DumpPremium then
 	warn('[DUMPER] ===== PREMIUM DUMP ENABLED =====')
 	
 	local DUMP_FOLDER = 'vapetweaker/dumps'
+	local dumpData = {}
+	
 	pcall(function()
 		if not isfolder('vapetweaker') then makefolder('vapetweaker') end
 		if not isfolder(DUMP_FOLDER) then makefolder(DUMP_FOLDER) end
 		warn('[DUMPER] Folder created')
+		
+		-- Показываем где папка
+		local testFile = DUMP_FOLDER .. '/location.txt'
+		local fullPath = 'Check your executor workspace folder: ' .. DUMP_FOLDER
+		writefile(testFile, fullPath)
+		warn('[DUMPER] Files will be saved to: ' .. DUMP_FOLDER)
+		warn('[DUMPER] Check your executor workspace folder!')
 	end)
 	
 	-- Перехват loadstring
@@ -177,8 +186,9 @@ if getgenv().DumpPremium then
 				local tag = tostring(chunkname or '')
 				if tag:find('paid') or tag:find('premium') then
 					warn('[DUMPER] !!! PREMIUM CAUGHT !!!')
-					writefile(DUMP_FOLDER .. '/premium_raw.lua', source)
-					warn('[DUMPER] Saved premium code!')
+					local filename = DUMP_FOLDER .. '/premium_raw.lua'
+					writefile(filename, source)
+					warn('[DUMPER] Saved to: ' .. filename)
 				end
 			end
 		end)
@@ -196,6 +206,15 @@ if getgenv().DumpPremium then
 				cat.CreateModule = function(self, opt)
 					if opt and opt.Name then
 						warn('[DUMPER] Module:', opt.Name)
+						
+						-- Сохраняем данные модуля
+						dumpData[opt.Name] = {
+							Name = opt.Name,
+							Category = catName,
+							Tags = opt.Tags or {},
+							Tooltip = opt.Tooltip or ''
+						}
+						
 						if opt.Tags and table.find(opt.Tags, 'new') then
 							warn('[DUMPER] !!! NEW:', opt.Name, '!!!')
 						end
@@ -205,6 +224,17 @@ if getgenv().DumpPremium then
 			end
 		end
 		warn('[DUMPER] Hooks installed!')
+		
+		-- Сохраняем JSON через 5 секунд
+		task.wait(5)
+		pcall(function()
+			local httpService = game:GetService('HttpService')
+			local json = httpService:JSONEncode(dumpData)
+			local filename = DUMP_FOLDER .. '/modules.json'
+			writefile(filename, json)
+			warn('[DUMPER] Saved modules to: ' .. filename)
+			warn('[DUMPER] Total modules: ' .. tostring(#dumpData))
+		end)
 	end)
 end
 
