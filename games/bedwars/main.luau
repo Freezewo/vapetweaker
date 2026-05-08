@@ -307,7 +307,7 @@ getgenv().getShieldAttribute = getShieldAttribute
 local knockbackSpeed, knockbackBoost = 0, tick()
 local DamageBoostValue = false
 local JadeHammerTick = 0
-local GrimReaperSpeed = false
+local GrimReaperSpeedEnabled = false
 
 local function getSpeed()
 	local multi, increase, modifiers = 0, true, bedwars.SprintController:getMovementStatusModifier():getModifiers()
@@ -341,7 +341,7 @@ local function getSpeed()
 	end
 	
 	-- GrimReaper speed boost
-	if GrimReaperSpeed == true then
+	if GrimReaperSpeedEnabled and lplr.Character and lplr.Character:GetAttribute('GrimReaperChannel') then
 		baseSpeed = baseSpeed + 20
 	end
 	
@@ -4766,22 +4766,7 @@ run(function()
 		Name = 'Grim Reaper Speed',
 		Tooltip = 'Gives +20 speed when GrimReaper channel is active',
 		Function = function(callback)
-			if callback then
-				task.spawn(function()
-					repeat
-						task.wait(0.1)
-						
-						if entitylib.isAlive then
-							local hasGrimChannel = lplr.Character:GetAttribute('GrimReaperChannel')
-							GrimReaperSpeed = hasGrimChannel ~= nil
-						else
-							GrimReaperSpeed = false
-						end
-					until not GrimReaperSpeedModule.Enabled
-				end)
-			else
-				GrimReaperSpeed = false
-			end
+			GrimReaperSpeedEnabled = callback
 		end
 	})
 end)
