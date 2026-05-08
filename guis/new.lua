@@ -4978,25 +4978,11 @@ function mainapi:CreateSearch()
 	searchicon.Image = getcustomasset('vapetweaker/assets/new/search.png')
 	searchicon.ImageColor3 = color.Light(uipallet.Main, 0.37)
 	searchicon.Parent = searchbkg
-	local legiticon = Instance.new('ImageButton')
-	legiticon.Name = 'Legit'
-	legiticon.Size = UDim2.fromOffset(29, 16)
-	legiticon.Position = UDim2.fromOffset(8, 11)
-	legiticon.BackgroundTransparency = 1
-	legiticon.Image = getcustomasset('vapetweaker/assets/new/legit.png')
-	legiticon.Parent = searchbkg
-	local legitdivider = Instance.new('Frame')
-	legitdivider.Name = 'LegitDivider'
-	legitdivider.Size = UDim2.fromOffset(2, 12)
-	legitdivider.Position = UDim2.fromOffset(43, 13)
-	legitdivider.BackgroundColor3 = color.Light(uipallet.Main, 0.14)
-	legitdivider.BorderSizePixel = 0
-	legitdivider.Parent = searchbkg
 	addBlur(searchbkg)
 	addCorner(searchbkg)
 	local search = Instance.new('TextBox')
-	search.Size = UDim2.new(1, -50, 0, 37)
-	search.Position = UDim2.fromOffset(50, 0)
+	search.Size = UDim2.new(1, -30, 0, 37)
+	search.Position = UDim2.fromOffset(15, 0)
 	search.BackgroundTransparency = 1
 	search.Text = ''
 	search.PlaceholderText = ''
@@ -5032,11 +5018,6 @@ function mainapi:CreateSearch()
 
 	children:GetPropertyChangedSignal('CanvasPosition'):Connect(function()
 		divider.Visible = children.CanvasPosition.Y > 10 and children.Visible
-	end)
-	legiticon.MouseButton1Click:Connect(function()
-		clickgui.Visible = false
-		self.Legit.Window.Visible = true
-		self.Legit.Window.Position = UDim2.new(0.5, -350, 0.5, -194)
 	end)
 	local function hasAlias(alias, text)
 		for _, v in alias do
@@ -5123,8 +5104,6 @@ function mainapi:CreateSearch()
 		children.CanvasSize = UDim2.fromOffset(0, windowlist.AbsoluteContentSize.Y / scale.Scale)
 		searchbkg.Size = UDim2.fromOffset(220, math.min(37 + windowlist.AbsoluteContentSize.Y / scale.Scale, 437))
 	end)
-
-	self.Legit.Icon = legiticon
 end
 
 function mainapi:CreateLegit()
@@ -7026,24 +7005,6 @@ mainapi:CreateCategory({
 	Icon = getcustomasset('vapetweaker/assets/new/miniicon.png'),
 	Size = UDim2.fromOffset(19, 12)
 })
-if game.GameId == 2619619496 then
-	mainapi:CreateCategory({
-		Name = 'Kits',
-		Icon = getcustomasset('vapetweaker/assets/new/friendstab.png'),
-		Size = UDim2.fromOffset(15, 15)
-	})
-
-	mainapi:CreateCategory({
-		Name = 'Legit',
-		Icon = getcustomasset('vapetweaker/assets/new/legittab.png'),
-		Size = UDim2.fromOffset(15, 15),
-		Function = function()
-			clickgui.Visible = false
-			mainapi.Legit.Window.Visible = true
-			mainapi.Legit.Window.Position = UDim2.new(0.5, -350, 0.5, -194)
-		end
-	})
-end
 mainapi.Categories.Main:CreateDivider('misc')
 
 --[[
@@ -7163,7 +7124,7 @@ targets = mainapi:CreateCategoryList({
 targets.Update = Instance.new('BindableEvent')
 mainapi:Clean(targets.Update)
 
-mainapi:CreateLegit()
+--mainapi:CreateLegit()
 mainapi:CreateProfileGUI()
 mainapi:CreateSearch()
 mainapi.Categories.Main:CreateOverlayBar()

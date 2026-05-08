@@ -1717,7 +1717,6 @@ run(function()
 	
 	BowAssist = vape.Categories.Combat:CreateModule({
 		Name = 'Bow Assist',
-		Tags = {'new'},
 		Tooltip = 'Smoothly aims to best predicted target position with projectile item',
 		Function = function(callback)
 			if callback then
@@ -4130,7 +4129,6 @@ run(function()
 
 	MouseTP = vape.Categories.Blatant:CreateModule({
 		Name = 'Mouse TP',
-		Tags = {'new'},
 		Tooltip = 'Teleports to a selected position',
 		Function = function(callback)
 			if callback then
@@ -4725,7 +4723,6 @@ run(function()
 	
 	BulletTracers = vape.Categories.Render:CreateModule({
 		Name = 'Projectile Tracers',
-		Tags = {'new'},
 		Function = function(callback)
 			if callback then 
 				BulletTracers:Clean(workspace.ChildAdded:Connect(function(projectile)
@@ -6866,7 +6863,6 @@ run(function()
 
 	AutoShoot = vape.Categories.Utility:CreateModule({
 		Name = 'Auto Shoot',
-		Tags = {'updated'},
 		Disabled = not canDebug,
 		Tooltip = 'Automatically swaps to another projectile source while swinging ur sword',
 		Function = function(call)
