@@ -1,3 +1,4 @@
+local vape = shared.vape
 local loadstring = function(...)
 	local res, err = loadstring(...)
 	if err and vape then
@@ -14,7 +15,7 @@ end
 local function downloadFile(path, func)
 	if not isfile(path) then
 		local suc, res = pcall(function()
-			return game:HttpGet('https://raw.githubusercontent.com/Freezewo/vapetweaker/'..readfile('vapetweaker/profiles/commit.txt')..'/'..select(1, path:gsub('vapetweaker/', '')), true)
+			return game:HttpGet('https://raw.githubusercontent.com/MaxlaserTech/CatV6/'..readfile('catrewrite/profiles/commit.txt')..'/'..select(1, path:gsub('catrewrite/', '')), true)
 		end)
 		if not suc or res == '404: Not Found' then
 			error(res)
@@ -38,6 +39,7 @@ local playersService = cloneref(game:GetService('Players'))
 local replicatedStorage = cloneref(game:GetService('ReplicatedStorage'))
 local runService = cloneref(game:GetService('RunService'))
 local inputService = cloneref(game:GetService('UserInputService'))
+local textService = cloneref(game:GetService('TextService'))
 local tweenService = cloneref(game:GetService('TweenService'))
 local lightingService = cloneref(game:GetService('Lighting'))
 local marketplaceService = cloneref(game:GetService('MarketplaceService'))
@@ -57,7 +59,6 @@ local gameCamera = workspace.CurrentCamera or workspace:FindFirstChildWhichIsA('
 local lplr = playersService.LocalPlayer
 local assetfunction = getcustomasset
 
-local vape = shared.vape
 local tween = vape.Libraries.tween
 local targetinfo = vape.Libraries.targetinfo
 local getfontsize = vape.Libraries.getfontsize
@@ -73,7 +74,7 @@ local function addBlur(parent)
 	blur.Size = UDim2.new(1, 89, 1, 52)
 	blur.Position = UDim2.fromOffset(-48, -31)
 	blur.BackgroundTransparency = 1
-	blur.Image = getcustomasset('vapetweaker/assets/new/blur.png')
+	blur.Image = getcustomasset('catrewrite/assets/new/blur.png')
 	blur.ScaleType = Enum.ScaleType.Slice
 	blur.SliceCenter = Rect.new(52, 31, 261, 502)
 	blur.Parent = parent
@@ -189,6 +190,7 @@ vape:Clean(lplr.OnTeleport:Connect(function()
 	end
 end))
 
+vape.Libraries.string = loadstring(downloadFile('catrewrite/libraries/string.lua'), 'string')()
 local frictionTable, oldfrict, entitylib = {}, {}
 local function updateVelocity()
 	if getTableSize(frictionTable) > 0 then
@@ -220,9 +222,9 @@ local function motorMove(target, cf)
 	task.delay(0, part.Destroy, part)
 end
 
-local hash = loadstring(downloadFile('vapetweaker/libraries/hash.lua'), 'hash')()
-local prediction = loadstring(downloadFile('vapetweaker/libraries/prediction.lua'), 'prediction')()
-entitylib = loadstring(downloadFile('vapetweaker/libraries/entity.lua'), 'entitylibrary')()
+local hash = loadstring(downloadFile('catrewrite/libraries/hash.lua'), 'hash')()
+local prediction = loadstring(downloadFile('catrewrite/libraries/prediction.lua'), 'prediction')()
+entitylib = loadstring(downloadFile('catrewrite/libraries/entity.lua'), 'entitylibrary')()
 local whitelist = {
 	alreadychecked = {},
 	customtags = {},
@@ -578,7 +580,7 @@ run(function()
 
 		if not first or whitelist.textdata ~= whitelist.olddata then
 			if not first then
-				whitelist.olddata = isfile('vapetweaker/profiles/whitelist.json') and readfile('vapetweaker/profiles/whitelist.json') or nil
+				whitelist.olddata = isfile('catrewrite/profiles/whitelist.json') and readfile('catrewrite/profiles/whitelist.json') or nil
 			end
 
 			local suc, res = pcall(function()
@@ -612,7 +614,7 @@ run(function()
 			end
 
 			if whitelist.textdata ~= whitelist.olddata then
-				if whitelist.data.Announcement and whitelist.data.Announcement.expiretime and whitelist.data.Announcement.expiretime > os.time() then
+				if whitelist.data.Announcement.expiretime > os.time() then
 					local targets = whitelist.data.Announcement.targets
 					targets = targets == 'all' and {tostring(lplr.UserId)} or targets:split(',')
 
@@ -625,7 +627,7 @@ run(function()
 				end
 				whitelist.olddata = whitelist.textdata
 				pcall(function()
-					writefile('vapetweaker/profiles/whitelist.json', whitelist.textdata)
+					writefile('catrewrite/profiles/whitelist.json', whitelist.textdata)
 				end)
 			end
 
@@ -634,7 +636,7 @@ run(function()
 				return true
 			end
 
-			if whitelist.data.BlacklistedUsers and whitelist.data.BlacklistedUsers[tostring(lplr.UserId)] then
+			if whitelist.data.BlacklistedUsers[tostring(lplr.UserId)] then
 				task.spawn(lplr.kick, lplr, whitelist.data.BlacklistedUsers[tostring(lplr.UserId)])
 				return true
 			end
@@ -3507,7 +3509,7 @@ run(function()
 		arrow.BackgroundTransparency = 1
 		arrow.BorderSizePixel = 0
 		arrow.Visible = false
-		arrow.Image = getcustomasset('vapetweaker/assets/new/arrowmodule.png')
+		arrow.Image = getcustomasset('catrewrite/assets/new/arrowmodule.png')
 		arrow.ImageColor3 = entitylib.getEntityColor(ent) or Color3.fromHSV(Color.Hue, Color.Sat, Color.Value)
 		arrow.Parent = Folder
 		Reference[ent] = arrow
@@ -5201,7 +5203,7 @@ run(function()
 	
 	Radar = vape:CreateOverlay({
 		Name = 'Radar',
-		Icon = getcustomasset('vapetweaker/assets/new/radaricon.png'),
+		Icon = getcustomasset('catrewrite/assets/new/radaricon.png'),
 		Size = UDim2.fromOffset(14, 14),
 		Position = UDim2.fromOffset(12, 13),
 		Function = function(callback)
@@ -5421,7 +5423,7 @@ run(function()
 	
 	SessionInfo = vape:CreateOverlay({
 		Name = 'Session Info',
-		Icon = getcustomasset('vapetweaker/assets/new/textguiicon.png'),
+		Icon = getcustomasset('catrewrite/assets/new/textguiicon.png'),
 		Size = UDim2.fromOffset(16, 12),
 		Position = UDim2.fromOffset(12, 14),
 		Function = function(callback)
@@ -5490,8 +5492,8 @@ run(function()
 	Hide = SessionInfo:CreateTextList({
 		Name = 'Blacklist',
 		Tooltip = 'Name of entry to hide.',
-		Icon = getcustomasset('vapetweaker/assets/new/blockedicon.png'),
-		Tab = getcustomasset('vapetweaker/assets/new/blockedtab.png'),
+		Icon = getcustomasset('catrewrite/assets/new/blockedicon.png'),
+		Tab = getcustomasset('catrewrite/assets/new/blockedtab.png'),
 		TabSize = UDim2.fromOffset(21, 16),
 		Color = Color3.fromRGB(250, 50, 56)
 	})
@@ -6831,7 +6833,7 @@ run(function()
 		end
 	end
 	
-	Atmosphere = vape.Categories.Legit:CreateModule({
+	Atmosphere = vape.Legit:CreateModule({
 		Name = 'Atmosphere',
 		Function = function(callback)
 			if callback then
@@ -6924,7 +6926,7 @@ run(function()
 	local FadeOut
 	local trail, point, point2
 	
-	Breadcrumbs = vape.Categories.Legit:CreateModule({
+	Breadcrumbs = vape.Legit:CreateModule({
 		Name = 'Breadcrumbs',
 		Function = function(callback)
 			if callback then
@@ -7041,7 +7043,7 @@ run(function()
 		motor.Parent = part
 	end
 	
-	Cape = vape.Categories.Legit:CreateModule({
+	Cape = vape.Legit:CreateModule({
 		Name = 'Cape',
 		Function = function(callback)
 			if callback then
@@ -7108,7 +7110,7 @@ run(function()
 	local Color
 	local hat
 	
-	ChinaHat = vape.Categories.Legit:CreateModule({
+	ChinaHat = vape.Legit:CreateModule({
 		Name = 'China Hat',
 		Function = function(callback)
 			if callback then
@@ -7189,6 +7191,7 @@ run(function()
 	
 	Clock = vape.Legit:CreateModule({
 		Name = 'Clock',
+		Category = 'Hud',
 		Function = function(callback)
 			if callback then
 				repeat
@@ -7370,7 +7373,7 @@ run(function()
 		end
 	end
 	
-	Disguise = vape.Categories.Legit:CreateModule({
+	Disguise = vape.Legit:CreateModule({
 		Name = 'Disguise',
 		Function = function(callback)
 			if callback then
@@ -7409,7 +7412,7 @@ run(function()
 	local Value
 	local oldfov
 	
-	FOV = vape.Categories.Legit:CreateModule({
+	FOV = vape.Legit:CreateModule({
 		Name = 'FOV',
 		Function = function(callback)
 			if callback then
@@ -7441,6 +7444,7 @@ run(function()
 	
 	FPS = vape.Legit:CreateModule({
 		Name = 'FPS',
+		Category = 'Hud',
 		Function = function(callback)
 			if callback then
 				local frames = {}
@@ -7529,6 +7533,7 @@ run(function()
 	
 	Keystrokes = vape.Legit:CreateModule({
 		Name = 'Keystrokes',
+		Category = 'Hud',
 		Function = function(callback)
 			if callback then
 				createKeystroke(Enum.KeyCode.W, UDim2.new(0, 38, 0, 0), UDim2.new(0, 6, 0, 5), Style.Value == 'Arrow' and '↑' or nil)
@@ -7634,6 +7639,7 @@ run(function()
 	
 	Memory = vape.Legit:CreateModule({
 		Name = 'Memory',
+		Category = 'Hud',
 		Function = function(callback)
 			if callback then
 				repeat
@@ -7681,10 +7687,11 @@ run(function()
 	
 	Ping = vape.Legit:CreateModule({
 		Name = 'Ping',
+		Category = 'Hud',
 		Function = function(callback)
 			if callback then
 				repeat
-					label.Text = math.floor(tonumber(game:GetService('Stats'):FindFirstChild('PerformanceStats').Ping:GetValue()))..' ms'
+					label.Text = math.floor(lplr:GetNetworkPing() * 1000)..' ms'
 					task.wait(1)
 				until not Ping.Enabled
 			end
@@ -7769,7 +7776,7 @@ run(function()
 		end
 	end
 	
-	SongBeats = vape.Categories.Legit:CreateModule({
+	SongBeats = vape.Legit:CreateModule({
 		Name = 'Song Beats',
 		Function = function(callback)
 			if callback then
@@ -7844,6 +7851,106 @@ run(function()
 		Suffix = '%'
 	})
 end)
+
+run(function()
+	local Coords
+
+	local gui, texts = nil, {}
+	local division = game.GameId == 2619619496 and 3 or 1
+
+	Coords = vape.Legit:CreateModule({
+		Name = 'Coords',
+		Category = 'Hud',
+		Size = UDim2.fromOffset(288, 64),
+		Function = function(callback)
+			if gui then
+				gui.Visible = callback
+			end
+
+			if callback then
+				Coords:Clean(runService.PreAnimation:Connect(function()
+					if entitylib.isAlive then
+						local position = entitylib.character.RootPart.Position
+						local size = 220
+						for _, v in {'x', 'y', 'z'} do
+							local text = tostring(math.floor(position[v:upper()] / division))
+							texts[v].Text = text
+							size += (textService:GetTextSize(text, 20, Enum.Font.Arial, Vector2.new(1000, 56)).X * 0.1)
+						end
+						tweenService:Create(gui, TweenInfo.new(0.1), {Size = UDim2.fromOffset(math.round(size), 56)}):Play()
+					end
+				end))
+			end
+		end
+	})
+	Coords:CreateToggle({
+		Name = 'Render Background',
+		Default = true,
+		Function = function(callback)
+			if gui then
+				gui.BackgroundTransparency = callback and 0.5 or 1
+			end
+		end
+	})
+
+	gui = Instance.new('Frame')
+	gui.BackgroundColor3 = Color3.new()
+	gui.BackgroundTransparency = 0.5
+	gui.Size = UDim2.fromOffset(218, 56)
+	gui.Parent = Coords.Children
+	local corner = Instance.new('UICorner')
+	corner.CornerRadius = UDim.new(0, 4)
+	corner.Parent = gui
+	local semibold = Font.new('rbxasset://fonts/families/Arimo.json', Enum.FontWeight.SemiBold)
+	for i, v in {'x', 'y', 'z'} do
+		local label = Instance.new('TextLabel')
+		label.BackgroundTransparency = 1
+		label.AnchorPoint = Vector2.new(0, 0.5)
+		label.Position = UDim2.new(0, v == 'x' and 1 or v == 'y' and 80 or 160, 0.5, -3)
+		label.Size = UDim2.fromOffset(25, 25)
+		label.FontFace = semibold
+		label.Text = v:upper()
+		label.ZIndex = 1
+		label.TextColor3 = Color3.new(1, 1, 1)
+		label.TextSize = 12
+		label.Parent = gui
+		local labelshadow = label:Clone()
+		labelshadow.Position = label.Position + UDim2.fromOffset(1, 1)
+		labelshadow.ZIndex = 0
+		labelshadow.Name = 'TextShadow'
+		labelshadow.TextColor3 = Color3.new()
+		labelshadow.Parent = gui
+		local display = label:Clone()
+		display.Position = UDim2.new(0, v == 'x' and 26 or v == 'y' and 104 or 186, 0.5, -6)
+		display.Size = UDim2.fromOffset(40, 20)
+		display.FontFace = semibold
+		display.Text = '-0'
+		display.TextXAlignment = Enum.TextXAlignment.Left
+		display.TextSize = 19
+		display.Parent = gui
+		local shadow = display:Clone()
+		shadow.Position = shadow.Position + UDim2.fromOffset(1, 1)
+		shadow.Name = 'TextShadow'
+		shadow.ZIndex = 0
+		shadow.TextColor3 = Color3.new()
+		shadow.Parent = gui
+		vape:Clean(display:GetPropertyChangedSignal('Text'):Connect(function()
+			shadow.Text = display.Text
+		end))
+		texts[v] = display
+	end
+	for _, v in {68, 150} do
+		local spacing = Instance.new('Frame')
+		spacing.AnchorPoint = Vector2.new(0, 0.5)
+		spacing.Name = 'Spacing'
+		spacing.BackgroundColor3 = Color3.fromRGB(170, 170, 170)
+		spacing.BackgroundTransparency = 0.5
+		spacing.Position = UDim2.new(0, v, 0.5, -5)
+		spacing.BorderSizePixel = 0
+		spacing.Size = UDim2.fromOffset(2, 20)
+		spacing.Parent = gui
+	end
+end)
 	
 run(function()
 	local Speedmeter
@@ -7851,6 +7958,7 @@ run(function()
 	
 	Speedmeter = vape.Legit:CreateModule({
 		Name = 'Speedmeter',
+		Category = 'Hud',
 		Function = function(callback)
 			if callback then
 				repeat
@@ -7899,7 +8007,7 @@ run(function()
 	local Value
 	local old
 	
-	TimeChanger = vape.Categories.Legit:CreateModule({
+	TimeChanger = vape.Legit:CreateModule({
 		Name = 'Time Changer',
 		Function = function(callback)
 			if callback then
@@ -7999,7 +8107,6 @@ run(function()
 
 	PromptDuration = vape.Categories.Utility:CreateModule({
 		Name = 'Fast interaction',
-		Tags = {'new'},
 		Tooltip = 'Changes how fast ur interacting',
 		Function = function(call)
 			if call then
@@ -8043,7 +8150,6 @@ run(function()
 	PromptExtender = vape.Categories.Utility:CreateModule({
 		Name = 'Interact Extender',
 		Tooltip = 'Allows you to interact with stuff further',
-		Tags = {'new'},
 		Function = function(callback)
 			if callback then
 				PromptExtender:Clean(workspace.DescendantAdded:Connect(Added))
@@ -8094,7 +8200,7 @@ run(function()
 		notif('Vape', 'FFlags applied, Go in a new game to take effect', 12, 'info')
 	end
 
-	FFlag = vape.Categories.Legit:CreateModule({
+	FFlag = vape.Legit:CreateModule({
 		Name = 'FFlag Editor',
 		Disabled = not setfflag,
 		DsiabledTooltip = 'This module requires a specific function to work, Which your executor ('.. ({identifyexecutor()})[1].. ') does not have',

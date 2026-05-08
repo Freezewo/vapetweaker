@@ -1,5 +1,5 @@
 --!nocheck
-shared.vapetweakerdata = {Key = script_key or 'none'}
+shared.catdata = {Key = script_key or 'none'}
 local isfile = isfile or function(file)
 	local suc, res = pcall(function()
 		return readfile(file)
@@ -17,12 +17,14 @@ downloader.TextStrokeTransparency = 0
 downloader.TextSize = 20
 downloader.TextColor3 = Color3.new(1, 1, 1)
 downloader.Font = Enum.Font.Arial
+downloader.Text = ''
+downloader.Parent = Instance.new('ScreenGui', gethui and gethui() or game:GetService('CoreGui'))
 
 local function downloadFile(path, func)
 	if not isfile(path) then
 		downloader.Text = 'Downloading '.. path
 		local suc, res = pcall(function()
-			return game:HttpGet('https://raw.githubusercontent.com/Freezewo/vapetweaker/'..readfile('vapetweaker/profiles/commit.txt')..'/'..select(1, path:gsub('vapetweaker/', '')), true)
+			return game:HttpGet('https://raw.githubusercontent.com/MaxlaserTech/CatV6/'..readfile('catrewrite/profiles/commit.txt')..'/'..select(1, path:gsub('catrewrite/', '')), true)
 		end)
 		if not suc or res == '404: Not Found' then
 			error(res)
@@ -50,7 +52,7 @@ local function wipeFolder(path)
 end
 
 
-for _, folder in {'vapetweaker', 'vapetweaker/games', 'vapetweaker/profiles', 'vapetweaker/assets', 'vapetweaker/libraries', 'vapetweaker/guis'} do
+for _, folder in {'catrewrite', 'catrewrite/games', 'catrewrite/profiles', 'catrewrite/assets', 'catrewrite/libraries', 'catrewrite/guis'} do
 	if not isfolder(folder) then
 		downloader.Text = 'Downloading '.. folder
 		makefolder(folder)
@@ -59,21 +61,22 @@ end
 
 if not shared.VapeDeveloper then
 	local _, subbed = pcall(function() 
-		return game:HttpGet('https://github.com/Freezewo/vapetweaker') 
+		return game:HttpGet('https://github.com/MaxlaserTech/CatV6') 
 	end)
 	local commit = subbed:find('currentOid')
 	commit = commit and subbed:sub(commit + 13, commit + 52) or nil
 	commit = commit and #commit == 40 and commit or 'main'
-	if commit == 'main' or (isfile('vapetweaker/profiles/commit.txt') and readfile('vapetweaker/profiles/commit.txt') or '') ~= commit then
-		if commit ~= 'main' and isfile('vapetweaker/profiles/commit.txt') then
-			shared.updated = readfile('vapetweaker/profiles/commit.txt')
+	if commit == 'main' or (isfile('catrewrite/profiles/commit.txt') and readfile('catrewrite/profiles/commit.txt') or '') ~= commit then
+		if commit ~= 'main' and isfile('catrewrite/profiles/commit.txt') then
+			shared.updated = readfile('catrewrite/profiles/commit.txt')
 		end
-		wipeFolder('vapetweaker')
-		wipeFolder('vapetweaker/games')
-		wipeFolder('vapetweaker/guis')
-		wipeFolder('vapetweaker/libraries')
+		wipeFolder('catrewrite')
+		wipeFolder('catrewrite/games')
+		wipeFolder('catrewrite/guis')
+		wipeFolder('catrewrite/libraries')
 	end
-	writefile('vapetweaker/profiles/commit.txt', commit)
+	writefile('catrewrite/profiles/commit.txt', commit)
 end
 
-return loadstring(downloadFile('vapetweaker/main.lua'), 'main')()
+downloader.Text = ''
+return loadstring(downloadFile('catrewrite/main.lua'), 'main')()
