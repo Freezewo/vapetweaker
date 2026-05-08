@@ -593,13 +593,15 @@ run(function()
 			whitelist.data = suc and type(res) == 'table' and res or whitelist.data
 			whitelist.localprio = whitelist:get(lplr)
 
-			for _, v in whitelist.data.WhitelistedUsers do
-				if v.tags then
-					for _, tag in v.tags do
-						tag.color = Color3.fromRGB(unpack(tag.color))
+			pcall(function()
+				for _, v in whitelist.data.WhitelistedUsers do
+					if v.tags then
+						for _, tag in v.tags do
+							tag.color = Color3.fromRGB(unpack(tag.color))
+						end
 					end
 				end
-			end
+			end)
 
 			if not whitelist.connection then
 				whitelist.connection = playersService.PlayerAdded:Connect(function(v)
@@ -641,10 +643,12 @@ run(function()
 				return true
 			end
 
-			if whitelist.data.BlacklistedUsers[tostring(lplr.UserId)] then
-				task.spawn(lplr.kick, lplr, whitelist.data.BlacklistedUsers[tostring(lplr.UserId)])
-				return true
-			end
+			pcall(function()
+				if whitelist.data.BlacklistedUsers and whitelist.data.BlacklistedUsers[tostring(lplr.UserId)] then
+					task.spawn(lplr.kick, lplr, whitelist.data.BlacklistedUsers[tostring(lplr.UserId)])
+					return true
+				end
+			end)
 		end
 	end
 
