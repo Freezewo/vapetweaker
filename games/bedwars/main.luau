@@ -4770,6 +4770,55 @@ run(function()
 		end
 	})
 end)
+
+run(function()
+	local AutoSoulCollect
+	local Range
+	
+	AutoSoulCollect = vape.Categories.Blatant:CreateModule({
+		Name = 'Auto Soul Collect',
+		Tooltip = 'Automatically collects GrimReaper souls in 360 degrees',
+		Function = function(callback)
+			if callback then
+				task.spawn(function()
+					repeat
+						task.wait(0.05)
+						
+						if entitylib.isAlive and store.equippedKit == 'grim_reaper' then
+							local localPosition = entitylib.character.RootPart.Position
+							
+							-- Iterate through all souls
+							for _, soul in bedwars.GrimReaperController.soulsByPosition do
+								if not AutoSoulCollect.Enabled then break end
+								
+								local soulPart = soul.PrimaryPart or soul
+								if soulPart then
+									local distance = (soulPart.Position - localPosition).Magnitude
+									
+									-- Collect soul if in range (360 degrees, no direction check)
+									if distance <= Range.Value then
+										pcall(function()
+											bedwars.Client:Get(remotes.ConsumeSoul):CallServer({
+												secret = soul:GetAttribute('GrimReaperSoulSecret')
+											})
+										end)
+									end
+								end
+							end
+						end
+					until not AutoSoulCollect.Enabled
+				end)
+			end
+		end
+	})
+	
+	Range = AutoSoulCollect:CreateSlider({
+		Name = 'Range',
+		Min = 10,
+		Max = 120,
+		Default = 30
+	})
+end)
 	
 run(function()
 	local BedESP
