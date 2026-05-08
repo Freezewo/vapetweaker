@@ -4645,8 +4645,8 @@ run(function()
 		Function = function(callback) end
 	})
 	
-	bedwars.ZapNetworking.EntityDamageEventZap.On(function(entityInstance, damage)
-		if entitylib.isAlive and entityInstance == lplr.Character and damage > 4 and bedwars.matchState ~= 0 and DamageBoost.Enabled and not Fly.Enabled then
+	bedwars.ZapNetworking.EntityDamageEventZap.On(function(entityInstance, damage, damageType, fromPosition, fromEntity)
+		if entitylib.isAlive and entityInstance == lplr.Character and damage > 4 and fromEntity and bedwars.matchState ~= 0 and DamageBoost.Enabled and not Fly.Enabled then
 			DamageBoostValue = true
 			
 			task.wait(0.6)
@@ -4687,7 +4687,7 @@ run(function()
 		Name = 'Spam Speed',
 		Min = 1,
 		Max = 100,
-		Default = 10
+		Default = 100
 	})
 end)
 	
