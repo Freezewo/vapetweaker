@@ -6628,7 +6628,7 @@ function mainapi:Load(skipgui, profile, profiledata)
 			end
 		end
 
-		if savedata.Legit then
+		if savedata.Legit and self.Legit then
 			for i, v in savedata.Legit do
 				local object = self.Legit.Modules[i]
 				if not object then continue end
@@ -6723,7 +6723,7 @@ function mainapi:LoadOptions(object, savedoptions)
 end
 
 function mainapi:Remove(obj)
-	local tab = (self.Modules[obj] and self.Modules or self.Legit.Modules[obj] and self.Legit.Modules or self.Categories)
+	local tab = (self.Modules[obj] and self.Modules or (self.Legit and self.Legit.Modules[obj] and self.Legit.Modules) or self.Categories)
 	if tab and tab[obj] then
 		local newobj = tab[obj]
 		if self.ThreadFix then
@@ -6777,7 +6777,7 @@ function mainapi:Save(newprofile)
 		}
 	end
 
-	for i, v in self.Legit.Modules do
+	for i, v in self.Legit and self.Legit.Modules or {} do
 		savedata.Legit[i] = {
 			Enabled = v.Enabled,
 			Position = v.Children and {X = v.Children.Position.X.Offset, Y = v.Children.Position.Y.Offset} or nil,
@@ -6807,7 +6807,7 @@ function mainapi:Uninject()
 			v:Toggle()
 		end
 	end
-	for _, v in self.Legit.Modules do
+	for _, v in self.Legit and self.Legit.Modules or {} do
 		if v.Enabled then
 			v:Toggle()
 		end
@@ -7233,7 +7233,7 @@ guipane:CreateToggle({
 	Default = true,
 	Tooltip = 'Toggles visibility of these'
 })
-guipane:CreateToggle({
+--[[guipane:CreateToggle({
 	Name = 'Show legit mode',
 	Function = function(enabled)
 		clickgui.Search.Legit.Visible = enabled
@@ -7243,7 +7243,7 @@ guipane:CreateToggle({
 	end,
 	Default = true,
 	Tooltip = 'Shows the button to change to Legit Mode'
-})
+})]]
 local scaleslider = {Object = {}, Value = 1}
 mainapi.Scale = guipane:CreateToggle({
 	Name = 'Auto rescale',
@@ -8099,7 +8099,7 @@ function mainapi:UpdateGUI(hue, sat, val, default)
 		end
 	end
 
-	if not clickgui.Visible and not mainapi.Legit.Window.Visible then return end
+	if not clickgui.Visible and not (mainapi.Legit and mainapi.Legit.Window.Visible) then return end
 	local rainbow = mainapi.GUIColor.Rainbow and mainapi.RainbowMode.Value ~= 'Retro'
 
 	for i, v in mainapi.Categories do
@@ -8172,7 +8172,7 @@ function mainapi:UpdateGUI(hue, sat, val, default)
 		end
 	end
 
-	if mainapi.Legit.Icon then
+	if mainapi.Legit and mainapi.Legit.Icon then
 		mainapi.Legit.Icon.ImageColor3 = Color3.fromHSV(hue, sat, val)
 	end
 
@@ -8182,7 +8182,7 @@ function mainapi:UpdateGUI(hue, sat, val, default)
 		end
 	end
 
-	if mainapi.Legit.Window.Visible then
+	if mainapi.Legit and mainapi.Legit.Window.Visible then
 		for _, v in mainapi.Legit.Modules do
 			if v.Enabled then
 				tween:Cancel(v.Object.Knob)
