@@ -2778,8 +2778,11 @@ run(function()
 
 						if ProgressBar.Enabled and progressFrame then
 							progressFrame.Visible = not flyAllowed
-							progressFrame.BackgroundColor3 = Color3.fromHSV(uipallet.Main.Hue, uipallet.Main.Sat, uipallet.Main.Value)
-							progressFrame.Frame.BackgroundColor3 = Color3.fromHSV(uipallet.Main.Hue, uipallet.Main.Sat, uipallet.Main.Value)
+							pcall(function()
+								local mainColor = Color3.fromHSV(uipallet.Main.Hue, uipallet.Main.Sat, uipallet.Main.Value)
+								progressFrame.BackgroundColor3 = mainColor
+								progressFrame.Frame.BackgroundColor3 = mainColor
+							end)
 							if not flyAllowed then
 								local newray = workspace:Raycast(root.Position + Vector3.new(0, -3, 0), Vector3.new(0, -1000, 0), rayCheck)
 								onground = newray and true or false
