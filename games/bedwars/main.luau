@@ -79,7 +79,6 @@ getgenv().store = store
 local Reach: VapeModule
 local HitBoxes: VapeModule
 local TrapDisabler
-local NoFallDamage
 local AntiFallPart
 local bedwars, remotes, sides, oldinvrender = setmetatable({}, {}), nil, {}, nil
 
@@ -331,17 +330,14 @@ local function getSpeed()
 
 	local baseSpeed = (20 + (knockbackBoost > tick() and knockbackSpeed or 0)) * (multi + 1)
 	
-	-- JadeHammer speed boost
 	if (tick() - JadeHammerTick) <= 1.4 then
 		baseSpeed = baseSpeed + 30
 	end
 	
-	-- DamageBoost speed boost
 	if DamageBoostValue == true then
 		baseSpeed = baseSpeed + 20
 	end
 	
-	-- GrimReaper speed boost
 	if GrimReaperSpeedEnabled and lplr.Character and lplr.Character:GetAttribute('GrimReaperChannel') then
 		baseSpeed = baseSpeed + 20
 	end
@@ -4697,26 +4693,6 @@ run(function()
 end)
 
 run(function()
-	NoFallDamage = vape.Categories.Blatant:CreateModule({
-		Name = 'No Fall Damage',
-		Tooltip = 'Prevents you from taking fall damage',
-		Function = function(callback) end
-	})
-	
-	-- Hook EntityDamageEventZap BEFORE the main vape hook
-	local originalZapOn = bedwars.ZapNetworking.EntityDamageEventZap.On
-	bedwars.ZapNetworking.EntityDamageEventZap.On = function(self, callback)
-		return originalZapOn(self, function(entityInstance, damage, damageType, fromPosition, fromEntity, ...)
-			-- Block fall damage: damageType 1 = fall damage, no fromEntity
-			if NoFallDamage.Enabled and entityInstance == lplr.Character and not fromEntity and damageType == 1 then
-				return -- Don't call the callback, blocking the damage
-			end
-			return callback(entityInstance, damage, damageType, fromPosition, fromEntity, ...)
-		end)
-	end
-end)
-
-run(function()
 	local ZephyrExploit
 	
 	ZephyrExploit = vape.Categories.Blatant:CreateModule({
@@ -4742,6 +4718,26 @@ run(function()
 end)
 
 run(function()
+	local NoPlacementCPS
+	local oldCPS
+	
+	NoPlacementCPS = vape.Categories.Blatant:CreateModule({
+		Name = 'No Placement CPS',
+		Tooltip = 'Removes block placement CPS limit',
+		Function = function(callback)
+			if callback then
+				oldCPS = bedwars.SharedConstants.BLOCK_PLACE_CPS
+				bedwars.SharedConstants.BLOCK_PLACE_CPS = math.huge
+			else
+				if oldCPS then
+					bedwars.SharedConstants.BLOCK_PLACE_CPS = oldCPS
+				end
+			end
+		end
+	})
+end)
+
+run(function()
 	local GrimReaperSpeedModule
 	local Range
 	
@@ -4759,7 +4755,6 @@ run(function()
 						if entitylib.isAlive and store.equippedKit == 'grim_reaper' then
 							local localPosition = entitylib.character.RootPart.Position
 							
-							-- Iterate through all souls (soulsByPosition is a table with position keys)
 							for pos, soul in bedwars.GrimReaperController.soulsByPosition do
 								if not GrimReaperSpeedModule.Enabled then break end
 								
@@ -4768,7 +4763,6 @@ run(function()
 									if soulPart then
 										local distance = (soulPart.Position - localPosition).Magnitude
 										
-										-- Collect soul if in range (360 degrees, no direction check)
 										if distance <= Range.Value then
 											local secret = soul:GetAttribute('GrimReaperSoulSecret')
 											if secret then
