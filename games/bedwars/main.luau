@@ -2714,9 +2714,14 @@ run(function()
 	local WallCheck
 	local PopBalloons
 	local TP
+	local ProgressBar
+	local DamageAnimation
+	local CameraAnimation
 	local rayCheck = RaycastParams.new()
 	rayCheck.RespectCanCollide = true
 	local up, down, old = 0, 0, nil
+	local progressFrame, oldcamupdate, camcontrol
+	local onground, lastonground, groundtime = true, true, 0
 
 	Fly = vape.Categories.Blatant:CreateModule({
 		Name = 'Fly',
@@ -2727,10 +2732,28 @@ run(function()
 				up, down, old = 0, 0, bedwars.BalloonController.deflateBalloon
 				bedwars.BalloonController.deflateBalloon = function() end
 				local tpTick, tpToggle, oldy = tick(), true, nil
+				local hadBalloons = false
 
 				if lplr.Character and (lplr.Character:GetAttribute('InflatedBalloons') or 0) == 0 and getItem('balloon') then
+					hadBalloons = true
 					bedwars.BalloonController:inflateBalloon()
 				end
+
+				local flyAllowed = (lplr.Character:GetAttribute('InflatedBalloons') and lplr.Character:GetAttribute('InflatedBalloons') > 0) or store.matchState == 2
+				if not flyAllowed and not hadBalloons and DamageAnimation.Enabled and shared.damageanim then
+					shared.damageanim()
+					pcall(function()
+						bedwars.SoundManager:playSound(bedwars.SoundList['DAMAGE_'..math.random(1, 3)])
+					end)
+				end
+
+				if ProgressBar.Enabled and not flyAllowed and not hadBalloons and progressFrame then
+					progressFrame.Visible = true
+					progressFrame.Frame:TweenSize(UDim2.new(1, 0, 0, 20), Enum.EasingDirection.InOut, Enum.EasingStyle.Linear, 0, true)
+				end
+
+				groundtime = tick() + 2.6
+
 				Fly:Clean(vapeEvents.AttributeChanged.Event:Connect(function(changed)
 					if changed == 'InflatedBalloons' and (lplr.Character:GetAttribute('InflatedBalloons') or 0) == 0 and getItem('balloon') then
 						bedwars.BalloonController:inflateBalloon()
@@ -2750,6 +2773,27 @@ run(function()
 							local ray = workspace:Raycast(root.Position, destination, rayCheck)
 							if ray then
 								destination = ((ray.Position + ray.Normal) - root.Position)
+							end
+						end
+
+						if ProgressBar.Enabled and progressFrame then
+							progressFrame.Visible = not flyAllowed
+							if not flyAllowed then
+								local newray = workspace:Raycast(root.Position + Vector3.new(0, -3, 0), Vector3.new(0, -1000, 0), rayCheck)
+								onground = newray and true or false
+								if lastonground ~= onground then
+									if not onground then
+										groundtime = tick() + 2.6
+										progressFrame.Frame:TweenSize(UDim2.new(0, 0, 0, 20), Enum.EasingDirection.InOut, Enum.EasingStyle.Linear, groundtime - tick(), true)
+									else
+										progressFrame.Frame:TweenSize(UDim2.new(1, 0, 0, 20), Enum.EasingDirection.InOut, Enum.EasingStyle.Linear, 0, true)
+									end
+								end
+								progressFrame.TextLabel.Text = math.max(onground and 2.5 or math.floor((groundtime - tick()) * 10) / 10, 0)..'s'
+								lastonground = onground
+							else
+								onground = true
+								lastonground = true
 							end
 						end
 
@@ -2811,6 +2855,9 @@ run(function()
 				end
 			else
 				bedwars.BalloonController.deflateBalloon = old
+				if progressFrame then
+					progressFrame.Visible = false
+				end
 				if PopBalloons.Enabled and entitylib.isAlive and (lplr.Character:GetAttribute('InflatedBalloons') or 0) > 0 then
 					for _ = 1, 3 do
 						bedwars.BalloonController:deflateBalloon()
@@ -2851,6 +2898,97 @@ run(function()
 	})
 	TP = Fly:CreateToggle({
 		Name = 'TP Down',
+		Default = true
+	})
+	DamageAnimation = Fly:CreateToggle({
+		Name = 'Damage Animation',
+		Function = function(callback)
+			if callback then
+				task.spawn(function()
+					repeat task.wait(0.1) until gameCamera
+					for _, v in pairs(getconnections(gameCamera:GetPropertyChangedSignal('CameraType'))) do
+						if v.Function then
+							camcontrol = debug.getupvalue(v.Function, 1)
+						end
+					end
+					if not camcontrol then return end
+					local caminput = require(lplr.PlayerScripts.PlayerModule.CameraModule.CameraInput)
+					local num = Instance.new('IntValue')
+					local numanim
+					shared.damageanim = function()
+						if numanim then numanim:Cancel() end
+						if CameraAnimation.Enabled then
+							num.Value = 1000
+							numanim = tweenService:Create(num, TweenInfo.new(0.5), {Value = 0})
+							numanim:Play()
+						end
+					end
+					oldcamupdate = camcontrol.Update
+					camcontrol.Update = function(self, dt)
+						if camcontrol.activeCameraController then
+							camcontrol.activeCameraController:UpdateMouseBehavior()
+							local newCameraCFrame, newCameraFocus = camcontrol.activeCameraController:Update(dt)
+							gameCamera.CFrame = newCameraCFrame * CFrame.Angles(0, 0, math.rad(num.Value / 100))
+							gameCamera.Focus = newCameraFocus
+							if camcontrol.activeTransparencyController then
+								camcontrol.activeTransparencyController:Update(dt)
+							end
+							if caminput.getInputEnabled() then
+								caminput.resetInputForFrameEnd()
+							end
+						end
+					end
+				end)
+			else
+				shared.damageanim = nil
+				if camcontrol and oldcamupdate then
+					camcontrol.Update = oldcamupdate
+				end
+			end
+		end
+	})
+	CameraAnimation = Fly:CreateToggle({
+		Name = 'Camera Animation',
+		Default = true
+	})
+	ProgressBar = Fly:CreateToggle({
+		Name = 'Progress Bar',
+		Function = function(callback)
+			if callback then
+				progressFrame = Instance.new('Frame')
+				progressFrame.AnchorPoint = Vector2.new(0.5, 0)
+				progressFrame.Position = UDim2.new(0.5, 0, 1, -200)
+				progressFrame.Size = UDim2.new(0.2, 0, 0, 20)
+				progressFrame.BackgroundTransparency = 0.5
+				progressFrame.BorderSizePixel = 0
+				progressFrame.BackgroundColor3 = Color3.new(0, 0, 0)
+				progressFrame.Visible = Fly.Enabled
+				progressFrame.Parent = vape.gui
+				local progressFrame2 = progressFrame:Clone()
+				progressFrame2.AnchorPoint = Vector2.new(0, 0)
+				progressFrame2.Position = UDim2.new(0, 0, 0, 0)
+				progressFrame2.Size = UDim2.new(1, 0, 0, 20)
+				progressFrame2.BackgroundTransparency = 0
+				progressFrame2.Visible = true
+				progressFrame2.Name = 'Frame'
+				progressFrame2.Parent = progressFrame
+				local progressText = Instance.new('TextLabel')
+				progressText.Text = '2s'
+				progressText.Font = Enum.Font.Gotham
+				progressText.TextStrokeTransparency = 0
+				progressText.TextColor3 = Color3.new(0.9, 0.9, 0.9)
+				progressText.TextSize = 20
+				progressText.Size = UDim2.new(1, 0, 1, 0)
+				progressText.BackgroundTransparency = 1
+				progressText.Position = UDim2.new(0, 0, -1, 0)
+				progressText.Parent = progressFrame
+			else
+				if progressFrame then
+					progressFrame:Destroy()
+					progressFrame = nil
+				end
+			end
+		end,
 		Default = true
 	})
 end)
