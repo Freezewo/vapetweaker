@@ -2984,7 +2984,7 @@ run(function()
 				progressText.Parent = progressFrame
 				
 				local function updateColor()
-					local mainColor = color.Light()
+					local mainColor = color.Light(uipallet.Main, 0.02)
 					progressFrame.BackgroundColor3 = mainColor
 					progressFrame.Frame.BackgroundColor3 = mainColor
 				end
