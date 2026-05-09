@@ -2779,7 +2779,7 @@ run(function()
 						if ProgressBar.Enabled and progressFrame then
 							progressFrame.Visible = not flyAllowed
 							pcall(function()
-								local mainColor = Color3.fromHSV(uipallet.Main.Hue, uipallet.Main.Sat, uipallet.Main.Value)
+								local mainColor = color.Dark()
 								progressFrame.BackgroundColor3 = mainColor
 								progressFrame.Frame.BackgroundColor3 = mainColor
 							end)
