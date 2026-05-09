@@ -2984,9 +2984,8 @@ run(function()
 				progressText.Parent = progressFrame
 				
 				local function updateColor()
-					local mainColor = color.Light(uipallet.Accent, 0)
-					progressFrame.BackgroundColor3 = mainColor
-					progressFrame.Frame.BackgroundColor3 = mainColor
+					progressFrame.BackgroundColor3 = uipallet.Accent or Color3.new(1, 1, 1)
+					progressFrame.Frame.BackgroundColor3 = uipallet.Accent or Color3.new(1, 1, 1)
 				end
 				updateColor()
 				Fly:Clean(vape.Categories.Friends.ColorUpdate.Event:Connect(updateColor))
