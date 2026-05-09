@@ -4700,20 +4700,20 @@ run(function()
 	NoFallDamage = vape.Categories.Blatant:CreateModule({
 		Name = 'No Fall Damage',
 		Tooltip = 'Prevents you from taking fall damage',
-		Function = function(callback)
-			if callback then
-				local oldGroundHit = bedwars.GroundHit
-				bedwars.GroundHit = function(...)
-					-- Simply don't call the original function when enabled
-					return
-				end
-				
-				NoFallDamage:Clean(function()
-					bedwars.GroundHit = oldGroundHit
-				end)
-			end
-		end
+		Function = function(callback) end
 	})
+	
+	-- Hook EntityDamageEventZap BEFORE the main vape hook
+	local originalZapOn = bedwars.ZapNetworking.EntityDamageEventZap.On
+	bedwars.ZapNetworking.EntityDamageEventZap.On = function(self, callback)
+		return originalZapOn(self, function(entityInstance, damage, damageType, fromPosition, fromEntity, ...)
+			-- Block fall damage: damageType 1 = fall damage, no fromEntity
+			if NoFallDamage.Enabled and entityInstance == lplr.Character and not fromEntity and damageType == 1 then
+				return -- Don't call the callback, blocking the damage
+			end
+			return callback(entityInstance, damage, damageType, fromPosition, fromEntity, ...)
+		end)
+	end
 end)
 
 run(function()
