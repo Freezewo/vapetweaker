@@ -2778,9 +2778,6 @@ run(function()
 
 						if ProgressBar.Enabled and progressFrame then
 							progressFrame.Visible = not flyAllowed
-							local mainColor = color.Light()
-							progressFrame.BackgroundColor3 = mainColor
-							progressFrame.Frame.BackgroundColor3 = mainColor
 							if not flyAllowed then
 								local newray = workspace:Raycast(root.Position + Vector3.new(0, -3, 0), Vector3.new(0, -1000, 0), rayCheck)
 								onground = newray and true or false
@@ -2985,6 +2982,14 @@ run(function()
 				progressText.BackgroundTransparency = 1
 				progressText.Position = UDim2.new(0, 0, -1, 0)
 				progressText.Parent = progressFrame
+				
+				local function updateColor()
+					local mainColor = color.Light()
+					progressFrame.BackgroundColor3 = mainColor
+					progressFrame.Frame.BackgroundColor3 = mainColor
+				end
+				updateColor()
+				Fly:Clean(vape.Categories.Friends.ColorUpdate.Event:Connect(updateColor))
 			else
 				if progressFrame then
 					progressFrame:Destroy()
