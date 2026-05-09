@@ -4704,10 +4704,8 @@ run(function()
 			if callback then
 				local oldGroundHit = bedwars.GroundHit
 				bedwars.GroundHit = function(...)
-					if NoFallDamage.Enabled then
-						return
-					end
-					return oldGroundHit(...)
+					-- Simply don't call the original function when enabled
+					return
 				end
 				
 				NoFallDamage:Clean(function()
