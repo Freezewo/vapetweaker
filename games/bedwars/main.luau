@@ -2717,6 +2717,7 @@ run(function()
 	local ProgressBar
 	local DamageAnimation
 	local CameraAnimation
+	local ProgressBarColor
 	local rayCheck = RaycastParams.new()
 	rayCheck.RespectCanCollide = true
 	local up, down, old = 0, 0, nil
@@ -2984,9 +2985,10 @@ run(function()
 				progressText.Parent = progressFrame
 				
 				local function updateColor()
-					local h, s, v = color.GetHSV()
-					progressFrame.BackgroundColor3 = Color3.fromHSV(h, s, v)
-					progressFrame.Frame.BackgroundColor3 = Color3.fromHSV(h, s, v)
+					if ProgressBarColor then
+						progressFrame.BackgroundColor3 = Color3.fromHSV(ProgressBarColor.Hue, ProgressBarColor.Sat, ProgressBarColor.Value)
+						progressFrame.Frame.BackgroundColor3 = Color3.fromHSV(ProgressBarColor.Hue, ProgressBarColor.Sat, ProgressBarColor.Value)
+					end
 				end
 				updateColor()
 				Fly:Clean(vape.Categories.Friends.ColorUpdate.Event:Connect(updateColor))
@@ -2998,6 +3000,15 @@ run(function()
 			end
 		end,
 		Default = true
+	})
+	ProgressBarColor = Fly:CreateColorSlider({
+		Name = 'Bar Color',
+		Function = function()
+			if progressFrame then
+				progressFrame.BackgroundColor3 = Color3.fromHSV(ProgressBarColor.Hue, ProgressBarColor.Sat, ProgressBarColor.Value)
+				progressFrame.Frame.BackgroundColor3 = Color3.fromHSV(ProgressBarColor.Hue, ProgressBarColor.Sat, ProgressBarColor.Value)
+			end
+		end
 	})
 end)
 	
