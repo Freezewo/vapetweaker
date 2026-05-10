@@ -2984,8 +2984,9 @@ run(function()
 				progressText.Parent = progressFrame
 				
 				local function updateColor()
-					progressFrame.BackgroundColor3 = uipallet.Accent or Color3.new(1, 1, 1)
-					progressFrame.Frame.BackgroundColor3 = uipallet.Accent or Color3.new(1, 1, 1)
+					local h, s, v = color.GetHSV()
+					progressFrame.BackgroundColor3 = Color3.fromHSV(h, s, v)
+					progressFrame.Frame.BackgroundColor3 = Color3.fromHSV(h, s, v)
 				end
 				updateColor()
 				Fly:Clean(vape.Categories.Friends.ColorUpdate.Event:Connect(updateColor))
