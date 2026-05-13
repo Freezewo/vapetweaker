@@ -1,4 +1,38 @@
 --!nocheck
+-- Anti-Dump Protection
+local function checkDumper()
+	local dangerousFuncs = {
+		'getgc', 'getgenv', 'getrenv', 'getloadedmodules',
+		'debug.getupvalue', 'debug.getupvalues', 'debug.getconstants',
+		'debug.getinfo', 'debug.getproto', 'debug.getprotos',
+		'getscriptbytecode', 'getscriptclosure', 'dumpstring',
+		'saveinstance', 'writefile'
+	}
+	
+	local suspiciousActivity = 0
+	
+	for _, funcName in dangerousFuncs do
+		local func = loadstring('return '..funcName)
+		if func and pcall(func) then
+			suspiciousActivity = suspiciousActivity + 1
+		end
+	end
+	
+	if suspiciousActivity >= 5 then
+		local caller = debug.info(2, 's')
+		if caller and not caller:find('vapetweaker') then
+			warn('[VapeTweaker] Dumper detected! Blocking execution.')
+			return false
+		end
+	end
+	
+	return true
+end
+
+if not checkDumper() then
+	return
+end
+
 shared.catdata = {Key = script_key or 'none'}
 getgenv().catrole = 'Premium'
 getgenv().catname = 'VapeTweaker User'
