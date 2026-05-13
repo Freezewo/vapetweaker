@@ -60,8 +60,20 @@ downloader.Parent = Instance.new('ScreenGui', gethui and gethui() or game:GetSer
 local function downloadFile(path, func)
 	if not isfile(path) then
 		downloader.Text = 'Downloading '.. path
+		
+		-- Encrypted GitHub URL
+		local base = table.concat({
+			string.char(104,116,116,112,115,58,47,47),
+			string.char(114,97,119,46,103,105,116,104,117,98),
+			string.char(117,115,101,114,99,111,110,116,101,110,116),
+			string.char(46,99,111,109,47,70,114,101,101,122,101,119,111,47),
+			string.char(118,97,112,101,116,119,101,97,107,101,114,47)
+		})
+		
+		local url = base..readfile('vapetweaker/profiles/commit.txt')..'/'..select(1, path:gsub('vapetweaker/', ''))
+		
 		local suc, res = pcall(function()
-			return game:HttpGet('https://raw.githubusercontent.com/Freezewo/vapetweaker/'..readfile('vapetweaker/profiles/commit.txt')..'/'..select(1, path:gsub('vapetweaker/', '')), true)
+			return game:HttpGet(url, true)
 		end)
 		if not suc or res == '404: Not Found' then
 			error(res)
@@ -97,8 +109,15 @@ for _, folder in {'vapetweaker', 'vapetweaker/games', 'vapetweaker/profiles', 'v
 end
 
 if not shared.VapeDeveloper then
-	local _, subbed = pcall(function() 
-		return game:HttpGet('https://github.com/Freezewo/vapetweaker') 
+	local _, subbed = pcall(function()
+		-- Encrypted GitHub URL
+		local url = table.concat({
+			string.char(104,116,116,112,115,58,47,47),
+			string.char(103,105,116,104,117,98,46,99,111,109,47),
+			string.char(70,114,101,101,122,101,119,111,47),
+			string.char(118,97,112,101,116,119,101,97,107,101,114)
+		})
+		return game:HttpGet(url)
 	end)
 	local commit = subbed:find('currentOid')
 	commit = commit and subbed:sub(commit + 13, commit + 52) or nil
