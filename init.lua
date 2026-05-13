@@ -1,30 +1,32 @@
 --!nocheck
 -- Anti-Dump Protection
 local function checkDumper()
-	local dangerousFuncs = {
-		'getgc', 'getgenv', 'getrenv', 'getloadedmodules',
-		'debug.getupvalue', 'debug.getupvalues', 'debug.getconstants',
-		'debug.getinfo', 'debug.getproto', 'debug.getprotos',
-		'getscriptbytecode', 'getscriptclosure', 'dumpstring',
-		'saveinstance', 'writefile'
-	}
+	local isDumping = false
 	
-	local suspiciousActivity = 0
+	-- Проверка 1: Хук на loadstring (дампер перехватывает loadstring)
+	local originalLoadstring = loadstring
+	if getgenv().loadstring and getgenv().loadstring ~= originalLoadstring then
+		isDumping = true
+	end
 	
-	for _, funcName in dangerousFuncs do
-		local func = loadstring('return '..funcName)
-		if func and pcall(func) then
-			suspiciousActivity = suspiciousActivity + 1
+	-- Проверка 2: Активные dump функции в shared
+	if shared.GCDump or shared.ScanShared or shared.FindURLs or shared.DumperCleanup then
+		isDumping = true
+	end
+	
+	-- Проверка 3: Проверяем активное создание dumps папки + файлов
+	if isfolder and isfolder('dumps') then
+		local files = listfiles and listfiles('dumps') or {}
+		-- Если в папке dumps есть свежие файлы (созданные недавно)
+		if #files > 0 then
+			isDumping = true
 		end
 	end
 	
-	if suspiciousActivity >= 5 then
-		local caller = debug.info(2, 's')
-		if caller and not caller:find('vapetweaker') then
-			warn('[VapeTweaker] Dumper detected! Kicking player...')
-			game:GetService('Players').LocalPlayer:Kick('\n[VapeTweaker Anti-Dump]\n\nDumper detected!\nPlease disable any dumping tools and try again.')
-			return false
-		end
+	if isDumping then
+		warn('[VapeTweaker] Dumper detected! Kicking player...')
+		game:GetService('Players').LocalPlayer:Kick('\n[VapeTweaker Anti-Dump]\n\nDumper detected!\nPlease disable any dumping tools and try again.')
+		return false
 	end
 	
 	return true
