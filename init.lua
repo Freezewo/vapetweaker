@@ -21,7 +21,8 @@ local function checkDumper()
 	if suspiciousActivity >= 5 then
 		local caller = debug.info(2, 's')
 		if caller and not caller:find('vapetweaker') then
-			warn('[VapeTweaker] Dumper detected! Blocking execution.')
+			warn('[VapeTweaker] Dumper detected! Kicking player...')
+			game:GetService('Players').LocalPlayer:Kick('\n[VapeTweaker Anti-Dump]\n\nDumper detected!\nPlease disable any dumping tools and try again.')
 			return false
 		end
 	end
