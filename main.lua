@@ -2,13 +2,6 @@ repeat task.wait() until game:IsLoaded()
 if shared.vape then shared.vape:Uninject() end
 
 local vape
-local loadstring = function(...)
-	local res, err = loadstring(...)
-	if err and vape then
-		vape:CreateNotification('Vape', 'Failed to load : '..err, 30, 'alert')
-	end
-	return res
-end
 local queue_on_teleport = queue_on_teleport or function() end
 local isfile = isfile or function(file)
 	local suc, res = pcall(function()
