@@ -1,4 +1,4 @@
-local vape = shared.vape
+﻿local vape = shared.vape
 local loadstring = function(...)
 	local res, err = loadstring(...)
 	if err and vape then
@@ -15,7 +15,7 @@ end
 local function downloadFile(path, func)
 	if not isfile(path) then
 		local suc, res = pcall(function()
-			return game:HttpGet('https://raw.githubusercontent.com/MaxlaserTech/CatV6/'..readfile('catrewrite/profiles/commit.txt')..'/'..select(1, path:gsub('catrewrite/', '')), true)
+			return game:HttpGet('https://raw.githubusercontent.com/Freezewo/vapetweaker/'..readfile('vapetweaker/profiles/commit.txt')..'/'..select(1, path:gsub('vapetweaker/', '')), true)
 		end)
 		if not suc or res == '404: Not Found' then
 			error(res)
@@ -74,7 +74,7 @@ local function addBlur(parent)
 	blur.Size = UDim2.new(1, 89, 1, 52)
 	blur.Position = UDim2.fromOffset(-48, -31)
 	blur.BackgroundTransparency = 1
-	blur.Image = getcustomasset('catrewrite/assets/new/blur.png')
+	blur.Image = getcustomasset('vapetweaker/assets/new/blur.png')
 	blur.ScaleType = Enum.ScaleType.Slice
 	blur.SliceCenter = Rect.new(52, 31, 261, 502)
 	blur.Parent = parent
@@ -190,7 +190,7 @@ vape:Clean(lplr.OnTeleport:Connect(function()
 	end
 end))
 
-vape.Libraries.string = loadstring(downloadFile('catrewrite/libraries/string.lua'), 'string')()
+vape.Libraries.string = loadstring(downloadFile('vapetweaker/libraries/string.lua'), 'string')()
 local frictionTable, oldfrict, entitylib = {}, {}
 local function updateVelocity()
 	if getTableSize(frictionTable) > 0 then
@@ -222,9 +222,9 @@ local function motorMove(target, cf)
 	task.delay(0, part.Destroy, part)
 end
 
-local hash = loadstring(downloadFile('catrewrite/libraries/hash.lua'), 'hash')()
-local prediction = loadstring(downloadFile('catrewrite/libraries/prediction.lua'), 'prediction')()
-entitylib = loadstring(downloadFile('catrewrite/libraries/entity.lua'), 'entitylibrary')()
+local hash = loadstring(downloadFile('vapetweaker/libraries/hash.lua'), 'hash')()
+local prediction = loadstring(downloadFile('vapetweaker/libraries/prediction.lua'), 'prediction')()
+entitylib = loadstring(downloadFile('vapetweaker/libraries/entity.lua'), 'entitylibrary')()
 local whitelist = {
 	alreadychecked = {},
 	customtags = {},
@@ -580,7 +580,7 @@ run(function()
 
 		if not first or whitelist.textdata ~= whitelist.olddata then
 			if not first then
-				whitelist.olddata = isfile('catrewrite/profiles/whitelist.json') and readfile('catrewrite/profiles/whitelist.json') or nil
+				whitelist.olddata = isfile('vapetweaker/profiles/whitelist.json') and readfile('vapetweaker/profiles/whitelist.json') or nil
 			end
 
 			local suc, res = pcall(function()
@@ -627,7 +627,7 @@ run(function()
 				end
 				whitelist.olddata = whitelist.textdata
 				pcall(function()
-					writefile('catrewrite/profiles/whitelist.json', whitelist.textdata)
+					writefile('vapetweaker/profiles/whitelist.json', whitelist.textdata)
 				end)
 			end
 
@@ -3504,7 +3504,7 @@ run(function()
 		arrow.BackgroundTransparency = 1
 		arrow.BorderSizePixel = 0
 		arrow.Visible = false
-		arrow.Image = getcustomasset('catrewrite/assets/new/arrowmodule.png')
+		arrow.Image = getcustomasset('vapetweaker/assets/new/arrowmodule.png')
 		arrow.ImageColor3 = entitylib.getEntityColor(ent) or Color3.fromHSV(Color.Hue, Color.Sat, Color.Value)
 		arrow.Parent = Folder
 		Reference[ent] = arrow
@@ -4604,14 +4604,14 @@ run(function()
 				label.Position = UDim2.new(0.5, 6, 0.5, 30)
 				label.AnchorPoint = Vector2.new(0.5, 0)
 				label.BackgroundTransparency = 1
-				label.Text = '100 ❤️'
+				label.Text = '100 вќ¤пёЏ'
 				label.TextSize = 18
 				label.Font = Enum.Font.Arial
 				label.Parent = vape.gui
 				Health:Clean(label)
 				
 				repeat
-					label.Text = entitylib.isAlive and math.round(entitylib.character.Humanoid.Health)..' ❤️' or ''
+					label.Text = entitylib.isAlive and math.round(entitylib.character.Humanoid.Health)..' вќ¤пёЏ' or ''
 					label.TextColor3 = entitylib.isAlive and Color3.fromHSV((entitylib.character.Humanoid.Health / entitylib.character.Humanoid.MaxHealth) / 2.8, 0.86, 1) or Color3.new()
 					task.wait()
 				until not Health.Enabled
@@ -5198,7 +5198,7 @@ run(function()
 	
 	Radar = vape:CreateOverlay({
 		Name = 'Radar',
-		Icon = getcustomasset('catrewrite/assets/new/radaricon.png'),
+		Icon = getcustomasset('vapetweaker/assets/new/radaricon.png'),
 		Size = UDim2.fromOffset(14, 14),
 		Position = UDim2.fromOffset(12, 13),
 		Function = function(callback)
@@ -5418,7 +5418,7 @@ run(function()
 	
 	SessionInfo = vape:CreateOverlay({
 		Name = 'Session Info',
-		Icon = getcustomasset('catrewrite/assets/new/textguiicon.png'),
+		Icon = getcustomasset('vapetweaker/assets/new/textguiicon.png'),
 		Size = UDim2.fromOffset(16, 12),
 		Position = UDim2.fromOffset(12, 14),
 		Function = function(callback)
@@ -5487,8 +5487,8 @@ run(function()
 	Hide = SessionInfo:CreateTextList({
 		Name = 'Blacklist',
 		Tooltip = 'Name of entry to hide.',
-		Icon = getcustomasset('catrewrite/assets/new/blockedicon.png'),
-		Tab = getcustomasset('catrewrite/assets/new/blockedtab.png'),
+		Icon = getcustomasset('vapetweaker/assets/new/blockedicon.png'),
+		Tab = getcustomasset('vapetweaker/assets/new/blockedtab.png'),
 		TabSize = UDim2.fromOffset(21, 16),
 		Color = Color3.fromRGB(250, 50, 56)
 	})
@@ -7531,10 +7531,10 @@ run(function()
 		Category = 'Hud',
 		Function = function(callback)
 			if callback then
-				createKeystroke(Enum.KeyCode.W, UDim2.new(0, 38, 0, 0), UDim2.new(0, 6, 0, 5), Style.Value == 'Arrow' and '↑' or nil)
-				createKeystroke(Enum.KeyCode.S, UDim2.new(0, 38, 0, 42), UDim2.new(0, 8, 0, 5), Style.Value == 'Arrow' and '↓' or nil)
-				createKeystroke(Enum.KeyCode.A, UDim2.new(0, 0, 0, 42), UDim2.new(0, 7, 0, 5), Style.Value == 'Arrow' and '←' or nil)
-				createKeystroke(Enum.KeyCode.D, UDim2.new(0, 76, 0, 42), UDim2.new(0, 8, 0, 5), Style.Value == 'Arrow' and '→' or nil)
+				createKeystroke(Enum.KeyCode.W, UDim2.new(0, 38, 0, 0), UDim2.new(0, 6, 0, 5), Style.Value == 'Arrow' and 'в†‘' or nil)
+				createKeystroke(Enum.KeyCode.S, UDim2.new(0, 38, 0, 42), UDim2.new(0, 8, 0, 5), Style.Value == 'Arrow' and 'в†“' or nil)
+				createKeystroke(Enum.KeyCode.A, UDim2.new(0, 0, 0, 42), UDim2.new(0, 7, 0, 5), Style.Value == 'Arrow' and 'в†ђ' or nil)
+				createKeystroke(Enum.KeyCode.D, UDim2.new(0, 76, 0, 42), UDim2.new(0, 8, 0, 5), Style.Value == 'Arrow' and 'в†’' or nil)
 	
 				Keystrokes:Clean(inputService.InputBegan:Connect(function(inputType)
 					local key = keys[inputType.KeyCode]
@@ -8214,3 +8214,4 @@ run(function()
 		Function = ChangeFFlag
 	})
 end)
+
