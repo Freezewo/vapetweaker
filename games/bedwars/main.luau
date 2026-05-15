@@ -1054,8 +1054,8 @@ run(function()
 		Pathfinding using a luau version of dijkstra's algorithm
 		Source: https://stackoverflow.com/questions/39355587/speeding-up-dijkstras-algorithm-to-solve-a-3d-maze
 	]]
-	calculatePath = function(target, blockpos, findmag, angle, closestPosition)
-        if not closestPosition and cache[blockpos] and cache[blockpos][4] > tick() then
+	calculatePath = function(target, blockpos, findmag, angle)
+        if cache[blockpos] and cache[blockpos][4] > tick() then
             return unpack(cache[blockpos])
         end
 
@@ -1092,16 +1092,10 @@ run(function()
             end
         end
 
-        local pos, cost, closestCost = nil, math.huge, math.huge
+        local pos, cost = nil, math.huge
         for node in air do
-			local nodecost = distances[node]
-			if closestPosition then
-				local nodeclosest = (closestPosition - node).Magnitude
-				if nodeclosest < closestCost or (nodeclosest == closestCost and nodecost < cost) then
-					pos, cost, closestCost = node, nodecost, nodeclosest
-				end
-            elseif nodecost < cost then
-                pos, cost = node, nodecost
+            if distances[node] < cost then
+                pos, cost = node, distances[node]
             end
         end
 
@@ -1127,7 +1121,7 @@ run(function()
         return nil
 	end
 
-	bedwars.breakBlock = function(block, effects, anim, customHealthbar, instant, legit, sorting, angle, closest)
+	bedwars.breakBlock = function(block, effects, anim, customHealthbar, instant, legit, sorting, angle)
 		if lplr:GetAttribute('DenyBlockBreak') or not entitylib.isAlive then return end
 		sorting = sorting or 'Health'
 		angle = angle or 360
@@ -1135,17 +1129,6 @@ run(function()
 		local handler = bedwars.BlockController:getHandlerRegistry():getHandler(block.Name)
 		local cost, pos, target, path = math.huge, nil, nil, nil
 		local mag = 9e9	
-		local closestPosition = typeof(closest) == 'Vector3' and closest or nil
-		if closest then
-			closestPosition = getMousePosition() or entitylib.character.RootPart.Position
-		end
-
-		local findmag = breakmethods[sorting] or breakmethods.Health
-		if closestPosition then
-			findmag = function(part)
-				return (closestPosition - part.Position).Magnitude
-			end
-		end
 
 		local positions = (handler and handler:getContainedPositions(block) or {block.Position / 3})
 
@@ -1160,11 +1143,11 @@ run(function()
 			path[positions[1]] = positions[1] - Vector3.new(0, 3, 0)
 		else
 			for _, v in positions do
-				local dpos, dcost, dpath = calculatePath(block, v * 3, findmag, angle, closestPosition)
-				local dmag = dpos and ((closestPosition or entitylib.character.RootPart.Position) - dpos).Magnitude
+				local dpos, dcost, dpath = calculatePath(block, v * 3, breakmethods[sorting] or breakmethods.Health, angle)
+				local dmag = dpos and (entitylib.character.RootPart.Position - dpos).Magnitude
 				
 				if dpos then
-					if (closestPosition and (dmag < mag or (dmag == mag and dcost < cost))) or (not closestPosition and (dcost < cost or (dcost == cost and dmag < mag))) then
+					if dcost < cost or (dcost == cost and dmag < mag) then
 						cost, pos, target, path, mag = dcost, dpos, v * 3, dpath, dmag
 					end
 				end
@@ -4814,30 +4797,21 @@ end)
 run(function()
 	local DamageBoost
 	
-	local stack = 0
-
 	DamageBoost = vape.Categories.Blatant:CreateModule({
 		Name = 'Damage Boost',
-		Tooltip = 'Gives extra speed boost when damaged',
-		Function = function(callback)
-			if callback then
-				DamageBoost:Clean(vapeEvents.EntityDamageEvent.Event:Connect(function(damageTable)
-                    if entitylib.isAlive and tick() > stack and damageTable.entityInstance == lplr.Character and not LongJump.Enabled then
-						local horizontal = (damageTable.knockbackMultiplier and damageTable.knockbackMultiplier.horizontal or 0)
-						knockbackSpeed = bedwars.KnockbackUtil.calculateKnockbackVelocity(Vector3.one, 1, {
-							vertical = 0,
-							horizontal = horizontal
-						}).Magnitude * (0.9 + lplr:GetNetworkPing())
-
-						if knockbackSpeed then
-							stack = tick() + (knockbackSpeed / 45)
-							knockbackBoost = tick() + (horizontal / 3.5)
-						end
-                    end
-                end))
-			end
-		end
+		Tooltip = 'Boosts your speed while being damaged',
+		Function = function(callback) end
 	})
+	
+	bedwars.ZapNetworking.EntityDamageEventZap.On(function(entityInstance, damage, damageType, fromPosition, fromEntity)
+		if entitylib.isAlive and entityInstance == lplr.Character and damage > 4 and fromEntity and bedwars.matchState ~= 0 and DamageBoost.Enabled and not Fly.Enabled then
+			DamageBoostValue = true
+			
+			task.wait(0.6)
+			
+			DamageBoostValue = false
+		end
+	end)
 end)
 
 run(function()
@@ -5187,14 +5161,14 @@ run(function()
 				label.Position = UDim2.new(0.5, 6, 0.5, 30)
 				label.BackgroundTransparency = 1
 				label.AnchorPoint = Vector2.new(0.5, 0)
-				label.Text = entitylib.isAlive and math.round(lplr.Character:GetAttribute('Health'))..' тЭдя╕П' or ''
+				label.Text = entitylib.isAlive and math.round(lplr.Character:GetAttribute('Health'))..' ❤️' or ''
 				label.TextColor3 = entitylib.isAlive and Color3.fromHSV((lplr.Character:GetAttribute('Health') / lplr.Character:GetAttribute('MaxHealth')) / 2.8, 0.86, 1) or Color3.new()
 				label.TextSize = 18
 				label.Font = Enum.Font.Arial
 				label.Parent = vape.gui
 				Health:Clean(label)
 				Health:Clean(vapeEvents.AttributeChanged.Event:Connect(function()
-					label.Text = entitylib.isAlive and math.round(lplr.Character:GetAttribute('Health'))..' тЭдя╕П' or ''
+					label.Text = entitylib.isAlive and math.round(lplr.Character:GetAttribute('Health'))..' ❤️' or ''
 					label.TextColor3 = entitylib.isAlive and Color3.fromHSV((lplr.Character:GetAttribute('Health') / lplr.Character:GetAttribute('MaxHealth')) / 2.8, 0.86, 1) or Color3.new()
 				end))
 			end
@@ -6770,132 +6744,6 @@ run(function()
 		end)
 	end
 end) -- test
-
-run(function()
-	local AutoHannah
-	local Range
-
-	AutoHannah = vape.Categories.Kits:CreateModule({
-		Name = 'Auto Hannah',
-		Function = function(callback)
-			if callback then
-				local objs = collection('HannahExecuteInteraction', AutoHannah)
-				repeat
-					if entitylib.isAlive and store.equippedKit == 'hannah' then
-						local localPosition = entitylib.character.RootPart.Position
-						for _, v in objs do
-							if not AutoHannah.Enabled then break end
-							local part = not v:IsA('Model') and v or v.PrimaryPart
-							if part and (part.Position - localPosition).Magnitude <= Range.Value then
-								pcall(function()
-									bedwars.Client:Get(remotes.HannahKill):CallServer({
-										user = lplr,
-										victimEntity = v
-									})
-								end)
-							end
-						end
-					end
-					task.wait(0.1)
-				until not AutoHannah.Enabled
-			end
-		end,
-		Tooltip = 'Automatically executes low health players with Hannah.'
-	})
-
-	Range = AutoHannah:CreateSlider({
-		Name = 'Range',
-		Min = 1,
-		Max = 30,
-		Default = 30,
-		Suffix = function(val)
-			return val <= 1 and 'stud' or 'studs'
-		end
-	})
-end)
-
-run(function()
-	local AutoGingerbread
-	local Range
-	local Delay
-	local Break
-	local Jump
-	local Switch
-	local OwnOnly
-	local SuccessfulOnly
-	local old
-	local hook
-
-	local function canUseBlock(block)
-		if not entitylib.isAlive or typeof(block) ~= 'Instance' or not block:IsA('BasePart') then
-			return false
-		end
-		if store.equippedKit ~= 'gingerbread_man' then
-			return false
-		end
-		if OwnOnly.Enabled and block:GetAttribute('PlacedByUserId') ~= lplr.UserId then
-			return false
-		end
-		return (block.Position - entitylib.character.RootPart.Position).Magnitude <= Range.Value
-	end
-
-	local function breakBlock(block)
-		if not Break.Enabled or not canUseBlock(block) then return end
-		task.delay(Delay.Value, function()
-			if not canUseBlock(block) then return end
-			task.spawn(bedwars.breakBlock, block, false, nil, true, nil, Switch.Enabled)
-		end)
-	end
-
-	AutoGingerbread = vape.Categories.Kits:CreateModule({
-		Name = 'Auto Gingerbread Man',
-		Function = function(callback)
-			if callback then
-				old = bedwars.LaunchPadController.attemptLaunch
-				hook = function(...)
-					local controller, block = ...
-					local lastLaunch = controller and controller.lastLaunch or 0
-					local res = {old(...)}
-					local launched = not SuccessfulOnly.Enabled or (
-						controller and controller.lastLaunch
-						and (controller.lastLaunch ~= lastLaunch or workspace:GetServerTimeNow() - controller.lastLaunch < 0.5)
-					)
-					if launched then
-						breakBlock(block)
-						if Jump.Enabled and entitylib.isAlive then
-							lplr.Character.Humanoid:ChangeState(Enum.HumanoidStateType.Jumping)
-						end
-					end
-					return unpack(res)
-				end
-				bedwars.LaunchPadController.attemptLaunch = hook
-			elseif old then
-				if bedwars.LaunchPadController.attemptLaunch == hook then
-					bedwars.LaunchPadController.attemptLaunch = old
-				end
-				old = nil
-				hook = nil
-			end
-		end,
-		Tooltip = 'Automatically handles Gingerbread Man launch pads.'
-	})
-
-	Break = AutoGingerbread:CreateToggle({Name = 'Break launch pad', Default = true})
-	Jump = AutoGingerbread:CreateToggle({Name = 'Jump after launch'})
-	Switch = AutoGingerbread:CreateToggle({Name = 'Legit switch', Darker = true})
-	OwnOnly = AutoGingerbread:CreateToggle({Name = 'Own pads only', Default = true, Darker = true})
-	SuccessfulOnly = AutoGingerbread:CreateToggle({Name = 'Successful launch only', Default = true})
-	Range = AutoGingerbread:CreateSlider({
-		Name = 'Range',
-		Min = 1, Max = 30, Default = 30, Darker = true,
-		Suffix = function(val) return val <= 1 and 'stud' or 'studs' end
-	})
-	Delay = AutoGingerbread:CreateSlider({
-		Name = 'Break delay',
-		Min = 0, Max = 1, Default = 0.05, Decimal = 100, Darker = true,
-		Suffix = function(val) return val == 1 and 'sec' or 'secs' end
-	})
-end)
 	
 run(function()
 	local AutoPearl
@@ -10406,33 +10254,18 @@ run(function()
 	local BedPlates
 	local Background
 	local Color
-	local LayerCounter
-	local LayerColor
 	local Reference = {}
 	local Folder = Instance.new('Folder')
 	Folder.Parent = vape.gui
 	
-	local function getBlockLayerHealth(block)
-		local meta = bedwars.ItemMeta[block]
-		return meta and meta.block and meta.block.health or 0
-	end
-	
-	local function getLayerColor()
-		return LayerColor and Color3.fromHSV(LayerColor.Hue, LayerColor.Sat, LayerColor.Value) or Color3.new(1, 1, 1)
-	end
-	
 	local function scanSide(self, start, tab)
 		for _, side in sides do
-			local layers = {}
 			for i = 1, 15 do
 				local block = getPlacedBlock(start + (side * i))
-				if not block or block == self or block.Name == 'bed' then break end
-				if not block:GetAttribute('NoBreak') then
-					layers[block.Name] = (layers[block.Name] or 0) + 1
+				if not block or block == self then break end
+				if not block:GetAttribute('NoBreak') and not table.find(tab, block.Name) then
+					table.insert(tab, block.Name)
 				end
-			end
-			for block, amount in layers do
-				tab[block] = math.max(tab[block] or 0, amount)
 			end
 		end
 	end
@@ -10443,55 +10276,22 @@ run(function()
 				obj:Destroy()
 			end
 		end
+	
 		local start = v.Adornee.Position
-		local layers = {}
 		local alreadygot = {}
-		scanSide(v.Adornee, start, layers)
-		scanSide(v.Adornee, start + Vector3.new(0, 0, 3), layers)
-		for block, amount in layers do
-			table.insert(alreadygot, {block, amount})
-		end
+		scanSide(v.Adornee, start, alreadygot)
+		scanSide(v.Adornee, start + Vector3.new(0, 0, 3), alreadygot)
 		table.sort(alreadygot, function(a, b)
-			local healthA, healthB = getBlockLayerHealth(a[1]), getBlockLayerHealth(b[1])
-			return healthA == healthB and a[1] < b[1] or healthA > healthB
+			return (bedwars.ItemMeta[a].block and bedwars.ItemMeta[a].block.health or 0) > (bedwars.ItemMeta[b].block and bedwars.ItemMeta[b].block.health or 0)
 		end)
 		v.Enabled = #alreadygot > 0
-		for _, blockData in alreadygot do
-			local block, amount = blockData[1], blockData[2]
+	
+		for _, block in alreadygot do
 			local blockimage = Instance.new('ImageLabel')
 			blockimage.Size = UDim2.fromOffset(32, 32)
 			blockimage.BackgroundTransparency = 1
 			blockimage.Image = bedwars.getIcon({itemType = block}, true)
 			blockimage.Parent = v.Frame
-			if amount > 1 and (not LayerCounter or LayerCounter.Enabled) then
-				local amounttext = Instance.new('TextLabel')
-				amounttext.Name = 'Amount'
-				amounttext.Size = UDim2.fromScale(1, 1)
-				amounttext.BackgroundTransparency = 1
-				amounttext.Text = tostring(amount)
-				amounttext.TextColor3 = getLayerColor()
-				amounttext.TextSize = 16
-				amounttext.TextStrokeTransparency = 0.3
-				amounttext.Font = Enum.Font.Arial
-				amounttext.Parent = blockimage
-			end
-		end
-	end
-	
-	local function refreshAll()
-		for _, v in Reference do
-			refreshAdornee(v)
-		end
-	end
-	
-	local function updateLayerTextColor()
-		local textColor = getLayerColor()
-		for _, v in Reference do
-			for _, obj in v.Frame:GetDescendants() do
-				if obj:IsA('TextLabel') and obj.Name == 'Amount' then
-					obj.TextColor3 = textColor
-				end
-			end
 		end
 	end
 	
@@ -10585,25 +10385,6 @@ run(function()
 		end,
 		Darker = true
 	})
-	LayerCounter = BedPlates:CreateToggle({
-		Name = 'Layer Counter',
-		Function = function(callback)
-			if LayerColor and LayerColor.Object then
-				LayerColor.Object.Visible = callback
-			end
-			refreshAll()
-		end,
-		Default = true
-	})
-	LayerColor = BedPlates:CreateColorSlider({
-		Name = 'Counter Text Color',
-		DefaultSat = 0,
-		DefaultValue = 1,
-		Function = function()
-			updateLayerTextColor()
-		end,
-		Visible = LayerCounter.Enabled
-	})
 end)
 	
 run(function()
@@ -10624,7 +10405,6 @@ run(function()
 	local Animation
 	local SelfBreak
 	local InstantBreak
-	local Closest
 	local LimitItem
 	local AutoTool = {Enabled = false}
 	local customlist, parts = {}, {}
@@ -10749,7 +10529,7 @@ run(function()
 				if LimitItem.Enabled and not (store.hand.tool and bedwars.ItemMeta[store.hand.tool.Name].breakBlock) then continue end
 	
 				hit += 1
-				local target, path, endpos = bedwars.breakBlock(v, Effect.Enabled, Animation.Enabled, CustomHealth.Enabled and customHealthbar or nil, InstantBreak.Enabled, AutoTool.Enabled, Mode.Value, Angle.Value, Closest.Enabled)
+				local target, path, endpos = bedwars.breakBlock(v, Effect.Enabled, Animation.Enabled, CustomHealth.Enabled and customHealthbar or nil, InstantBreak.Enabled, AutoTool.Enabled, Mode.Value, Angle.Value)
 				if path then
 					local currentnode = target
 					for _, part in parts do
@@ -10931,10 +10711,6 @@ run(function()
 	Animation = Breaker:CreateToggle({Name = 'Animation'})
 	SelfBreak = Breaker:CreateToggle({Name = 'Self Break'})
 	InstantBreak = Breaker:CreateToggle({Name = 'Instant Break'})
-	Closest = Breaker:CreateToggle({
-		Name = 'Closest Break',
-		Tooltip = 'Breaks the nearest cover block to your mouse before the target block'
-	})
 	LimitItem = Breaker:CreateToggle({
 		Name = 'Limit to items',
 		Tooltip = 'Only breaks when tools are held'
