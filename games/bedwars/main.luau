@@ -1,4 +1,4 @@
-﻿--!nocheck
+--!nocheck
 local cloneref = cloneref or function(obj)
 	return obj
 end
