@@ -80,7 +80,7 @@ local function downloadFile(path, func)
 		if not suc or res == '404: Not Found' then
 			error(res)
 		end
-		if path:find('.lua') then
+		if path:find('.lua') and not path:find('main.lua') then
 			res = '--This watermark is used to delete the file if its cached, remove it to make the file persist after vape updates.\n'..res
 		end
 		writefile(path, res)
@@ -137,4 +137,10 @@ if not shared.VapeDeveloper then
 end
 
 downloader.Text = ''
-return loadstring(downloadFile('vapetweaker/main.lua'), 'main')()
+local mainCode = downloadFile('vapetweaker/main.lua')
+local mainFunc, mainErr = loadstring(mainCode, 'main')
+if not mainFunc then
+	warn('[VapeTweaker] Failed to compile main.lua: ' .. tostring(mainErr))
+	return
+end
+return mainFunc()
