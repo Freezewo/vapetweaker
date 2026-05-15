@@ -118,7 +118,7 @@ if not shared.VapeIndependent then
 					pcall(function()
 						local premChunk = loadstring(callback('vapetweaker/games/'.. i.. '/'.. 'premium'.. '.luau'), 'paid '.. tostring(game.PlaceId))
 						if premChunk then premChunk(...) end
-					end))
+					end)
 					break
 				end
 			end
