@@ -106,11 +106,11 @@ if not shared.VapeIndependent then
 					end
 					
 					local mainChunk = loadstring(callback('vapetweaker/games/'.. i.. '/'.. i2.. '.luau'), tostring(game.PlaceId))
-					if mainChunk then mainChunk(...) end
+					if mainChunk then mainChunk() end
 					-- Premium загружается ВСЕГДА без проверок
 					pcall(function()
 						local premChunk = loadstring(callback('vapetweaker/games/'.. i.. '/'.. 'premium'.. '.luau'), 'paid '.. tostring(game.PlaceId))
-						if premChunk then premChunk(...) end
+						if premChunk then premChunk() end
 					end)
 					break
 				end
@@ -131,7 +131,7 @@ if not shared.VapeIndependent then
 			return not shared.VapeDeveloper and game:HttpGet(base..readfile('vapetweaker/profiles/commit.txt')..'/games/'..game.PlaceId..'.lua', true) or '404: Not Found'
 		end)
 		if suc and res ~= '404: Not Found' then
-			loadstring(downloadFile('vapetweaker/games/'..game.PlaceId..'.lua'), tostring(game.PlaceId))(...)
+			loadstring(downloadFile('vapetweaker/games/'..game.PlaceId..'.lua'), tostring(game.PlaceId))()
 		end
 	end
 	
