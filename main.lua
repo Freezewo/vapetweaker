@@ -112,9 +112,13 @@ if not shared.VapeIndependent then
 						makefolder('vapetweaker/games/'.. i)
 					end
 					
-					loadstring(callback('vapetweaker/games/'.. i.. '/'.. i2.. '.luau'), tostring(game.PlaceId))(...)
+					local mainChunk = loadstring(callback('vapetweaker/games/'.. i.. '/'.. i2.. '.luau'), tostring(game.PlaceId))
+					if mainChunk then mainChunk(...) end
 					-- Premium загружается ВСЕГДА без проверок
-					loadstring(callback('vapetweaker/games/'.. i.. '/'.. 'premium'.. '.luau'), 'paid '.. tostring(game.PlaceId))(...)
+					pcall(function()
+						local premChunk = loadstring(callback('vapetweaker/games/'.. i.. '/'.. 'premium'.. '.luau'), 'paid '.. tostring(game.PlaceId))
+						if premChunk then premChunk(...) end
+					end))
 					break
 				end
 			end
